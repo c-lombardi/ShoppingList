@@ -24,17 +24,40 @@ public class Store {
 
     private String Name;
 
-    public Store (String name)
+    public Store (String store)
     {
-        Name = name;
+        if(store.contains(","))
+        {
+            String[] storeParts = store.split(",");
+            Id = Integer.parseInt(storeParts[0]);
+            Name = storeParts[1];
+        }
     }
 
-    public Store (int id) throws Exception {
-        try (Database db = new Database()) {
-            ResultSet store = db.SelectTableQuery(StoreQueries.GetStoreById(id));
-            while (store.next()) {
-                Name = store.getString("StoreName");
-            }
+    public Store (String name, Database db) throws Exception {
+        ResultSet store = db.SelectTableQuery(StoreQueries.GetStoreByName(name));
+        while (store.next()) {
+            Name = store.getString("StoreName");
+            Id = store.getInt("StoreId");
         }
+    }
+
+    public Store (int id, Database db) throws Exception {
+        ResultSet store = db.SelectTableQuery(StoreQueries.GetStoreById(id));
+        while (store.next()) {
+            Name = store.getString("StoreName");
+            Id = store.getInt("StoreId");
+        }
+    }
+
+    public Store(){}
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.valueOf(Id).trim());
+        sb.append(",");
+        sb.append(Name.trim());
+        return sb.toString();
     }
 }

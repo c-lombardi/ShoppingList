@@ -2,9 +2,8 @@
  * Created by Christopher on 9/3/2015.
  */
 public enum ByteCommand {
-    GetItem,
+    GetItems,
     AddItem,
-    RemoveItem,
     UpdateItem,
     AttachStoreToItem,
     RemoveItemFromList,

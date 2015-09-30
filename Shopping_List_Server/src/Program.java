@@ -5,7 +5,6 @@ public class Program {
     private static Server server;
     public static void main(String argv[])
     {
-        int port = Integer.getInteger(argv[0]);
-        server = new Server(port); //starts server
+        server = new Server(5297); //starts server
     }
 }

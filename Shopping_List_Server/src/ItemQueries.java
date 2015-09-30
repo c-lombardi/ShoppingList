@@ -6,15 +6,18 @@ public class ItemQueries {
     public static final String GetItemById(int itemId) {
         return String.format("SELECT * " +
                 "FROM Items " +
-                "WHERE Itemid = %d", itemId);
+                "WHERE ItemId = %d", itemId);
     }
     public static final String GetItemByName(String itemName) {
-        return String.format("SELECT * FROM Items WHERE " +
-                "ItemName = %s", itemName);
+        String rv = String.format("SELECT * " +
+                "FROM items " +
+                "WHERE ItemName = '%s'", itemName);
+        return rv;
     }
     public static final String AddItem(String itemName) {
-        return String.format("INSERT INTO Items (ItemName, ListActive) " +
-                "VALUES (%s, %b) RETURNING ItemId", itemName, String.valueOf(true));
+        return String.format("INSERT INTO Items (ItemId, ItemName, ListActive) " +
+                "VALUES (nextval('Item_Seq'), '%s', '%b') " +
+                "RETURNING ItemId, ItemName, BestPrice, ListActive, StoreId", itemName, String.valueOf(true));
     }
     public static final String AddStoreToItem(int itemId, int storeId) {
         return String.format("UPDATE Items " +
@@ -32,18 +35,23 @@ public class ItemQueries {
                 "WHERE ItemId = %d", itemId);
     }
     public static final String UpdateItemById(int itemId, Item newItem) throws Exception {
+        if(newItem.getStore() != null)
+        {
+            return String.format("UPDATE Items " +
+                            "SET (ItemName, BestPrice, ListActive, LibraryActive, StoreId) = ('%s', %f, %b, %b, %d) WHERE ItemId = %d",
+                    newItem.getName(), newItem.getBestPrice(),
+                    newItem.isListActive(), newItem.isLibraryActive(),
+                    newItem.getStore().getStoreId(), itemId);
+        }
         return String.format("UPDATE Items " +
-                "SET (ItemName, BestPrice, ListActive, LibraryActive, StoreId) = (%s, %d, %b, %b, %d) WHERE ItemId = %d",
+                        "SET (ItemName, BestPrice, ListActive, LibraryActive) = ('%s', %f, %b, %b) WHERE ItemId = %d",
                 newItem.getName(), newItem.getBestPrice(),
-                newItem.isListActive(), newItem.isLibraryActive(),
-                newItem.getStore().getStoreId(), itemId);
+                newItem.isListActive(), newItem.isLibraryActive(), itemId);
     }
     public static final String GetCountFromItemList (int count) {
         return String.format("SELECT * " +
                 "FROM Items " +
-                "WHERE ListActive = TRUE " +
-                "OFFSET %d " +
-                "LIMIT 10", count);
+                "WHERE ListActive = TRUE", count);
     }
     public static final String GetAllItemsFromLibrary = "SELECT * " +
             "FROM Items " +

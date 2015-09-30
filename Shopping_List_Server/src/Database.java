@@ -4,7 +4,7 @@
 
 import java.sql.*;
 
-public class Database  implements AutoCloseable {
+public class Database implements AutoCloseable {
     Connection db = null;
     PreparedStatement stmt;
     static final String databaseName = "shopping_list_database";
@@ -19,6 +19,8 @@ public class Database  implements AutoCloseable {
         try {
             db = DriverManager.getConnection(url, username, password);
             CreateDatabase();
+            db = DriverManager.getConnection(dbUrl, username, password);
+            CreateTables();
         }
         catch (Exception ex)
         {
@@ -26,7 +28,6 @@ public class Database  implements AutoCloseable {
         }
         finally {
             db = DriverManager.getConnection(dbUrl, username, password);
-            CreateTables();
         }
     }
     private void CreateDatabase() throws SQLException {
@@ -55,7 +56,8 @@ public class Database  implements AutoCloseable {
     }
 
     public ResultSet SelectTableQuery(String query) throws SQLException {
-        ResultSet rs = stmt.executeQuery(query);
+        stmt = db.prepareStatement(query);
+        ResultSet rs = stmt.executeQuery();
         return rs;
     }
 

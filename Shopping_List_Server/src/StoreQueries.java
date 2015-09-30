@@ -12,10 +12,12 @@ public class StoreQueries {
     public static final String GetStoreByName (String storeName) {
         return String.format("SELECT * " +
                 "FROM Stores " +
-                "WHERE StoreName = %s", storeName);
+                "WHERE StoreName = '%s'", storeName);
     }
     public static final String AddStore (String storeName) {
-        return String.format("INSERT INTO Stores (StoreName) (%s)", storeName);
+        return String.format("INSERT INTO Stores (StoreId, StoreName) " +
+                "VALUES (nextval('Store_Seq'), '%s') " +
+                "RETURNING StoreId", storeName);
     }
     public static final String GetCountFromStores (int count) {
         return String.format("SELECT * " +
@@ -26,8 +28,16 @@ public class StoreQueries {
 
     public static final String UpdateStore (int storeId, String newStoreName) {
         return String.format("UPDATE Stores " +
-                "SET (StoreName) = (%s) " +
+                "SET (StoreName) = ('%s') " +
                 "WHERE StoreId = %d", newStoreName, storeId);
+    }
+    public static final String RemoveStore (String StoreName) {
+        return String.format("DELETE FROM Stores " +
+                "WHERE StoreName = '%s'", StoreName);
+    }
+    public static final String RemoveStore (int StoreId) {
+        return String.format("DELETE FROM Stores " +
+                "WHERE StoreName = %d", StoreId);
     }
 
 }

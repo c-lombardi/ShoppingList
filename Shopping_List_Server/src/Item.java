@@ -66,44 +66,88 @@ public class Item {
     //End Getters and Setters
 
     //Constructors
-    public Item(String name, Store store, Float price) throws Exception {
+    public Item(String name, Store store, Float price, Database db) throws Exception {
         Name = name;
         Store = store;
         BestPrice = price;
         ListActive = true;
-        LibraryActive = true;try (Database db = new Database())
-        {
-            int StoreId = 0;
-            ResultSet item = db.SelectTableQuery(ItemQueries.AddItem(Name));
-            while(item.next()) {
-                Id = item.getInt("ItemId");
-            }
-            db.UpdateTableQuery(ItemQueries.UpdateItemById(Id, this));
+        LibraryActive = true;
+        ResultSet item = db.SelectTableQuery(ItemQueries.AddItem(Name));
+        while(item.next()) {
+            Id = item.getInt("ItemId");
         }
-
+        db.UpdateTableQuery(ItemQueries.UpdateItemById(Id, this));
     }
-    public Item(int itemid) throws Exception {
-        try (Database db = new Database())
+    public Item(int itemid, Database db) throws Exception {
+        int StoreId = 0;
+        ResultSet item = db.SelectTableQuery(ItemQueries.GetItemById(itemid));
+        while(item.next())
         {
-            int StoreId = 0;
-            ResultSet item = db.SelectTableQuery(ItemQueries.GetItemById(itemid));
-            while(item.next())
+            Id = itemid;
+            Name = item.getString("ItemName");
+            StoreId = item.getInt("StoreId");
+            BestPrice = item.getFloat("BestPrice");
+            ListActive = item.getBoolean("ListActive");
+            LibraryActive = item.getBoolean("LibraryActive");
+        }
+        if(StoreId > 0)
+        {
+            setStore(new Store(StoreId, db));
+        }
+    }
+
+    public Item (String itemString)
+    {
+        String [] partStrings = itemString.split(",");
+        for (int i = 0; i < partStrings.length; i++)
+        {
+            if(i == 0)
             {
-                Name = item.getString("ItemName");
-                StoreId = item.getInt("StoreId");
-                BestPrice = item.getFloat("BestPrice");
-                ListActive = item.getBoolean("ListActive");
-                LibraryActive = item.getBoolean("LibraryActive");
+                Id = Integer.parseInt(partStrings[i]);
             }
-            if(StoreId > 0)
+            else if(i == 1)
             {
-                ResultSet store = db.SelectTableQuery(StoreQueries.GetStoreById(StoreId));
-                {
-                    Store = new Store(store.getString("StoreName"));
-                    Store.setStoreId(store.getInt("StoreId"));
-                }
+                Name = partStrings[i];
+            }
+            else if(i == 2)
+            {
+                BestPrice = Float.parseFloat(partStrings[i]);
+            }
+            else if(i == 3)
+            {
+                ListActive = Boolean.parseBoolean(partStrings[i]);
+            }
+            else if(i == 4)
+            {
+                Store = new Store();
+                Store.setStoreId(Integer.parseInt(partStrings[i]));
+            }
+            else if(i == 5)
+            {
+                Store = new Store();
+                Store.setStoreName(partStrings[i]);
             }
         }
+    }
+
+    public Item() {}
+
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.valueOf(Id).trim());
+        sb.append(",");
+        sb.append(Name.trim());
+        sb.append(",");
+        sb.append(String.valueOf(BestPrice).trim());
+        sb.append(",");
+        sb.append(String.valueOf(ListActive).trim());
+        if(Store != null)
+        {
+            sb.append(",");
+            sb.append(Store.toString());
+        }
+        return sb.toString();
     }
     //End Constructors
 }

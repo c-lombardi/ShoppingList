@@ -24,8 +24,24 @@ public class Store {
 
     private String Name;
 
-    public Store (String name)
+    public Store (String store)
     {
-        Name = name;
+        if(store.contains(","))
+        {
+            String[] storeParts = store.split(",");
+            Id = Integer.parseInt(storeParts[0]);
+            Name = storeParts[1];
+        }
+    }
+
+    public Store(){}
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.valueOf(Id).trim());
+        sb.append(",");
+        sb.append(Name.trim());
+        return sb.toString();
     }
 }
