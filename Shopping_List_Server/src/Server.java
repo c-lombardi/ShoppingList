@@ -57,7 +57,7 @@ public class Server implements Runnable {
                             case getItems: {
                                 final Item item = new Item();
                                 final List<Item> ItemList = item.readAll();
-                                for (Item i : ItemList) {
+                                for (final Item i : ItemList) {
                                     out.println(i.toString());
                                     out.flush();
                                 }
