@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.Objects;
 
 /**
  * Created by Christopher on 9/10/2015.
@@ -39,6 +40,19 @@ public class Client extends AsyncTask<String, Client, String> {
         command = cmd;
         IpAddress = ip;
     }
+    private String CreateOutLine(Object ... objects){
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < objects.length; i++)
+        {
+            sb.append(objects[i].toString());
+            if(i != objects.length - 1) {
+                sb.append(";");
+            } else {
+                sb.append("\r\n");
+            }
+        }
+        return sb.toString();
+    }
     @Override
     protected void onPreExecute(){
         try {
@@ -59,85 +73,60 @@ public class Client extends AsyncTask<String, Client, String> {
                 BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 switch (command) {
                     case GetItems: {
-                        out.println(Integer.toString(ByteCommand.GetItems.ordinal()) + "\r\n");
+                        out.println(CreateOutLine(Integer.toString(ByteCommand.GetItems.ordinal())));
                         out.flush();
                         String itemString;
+                        shoppingList.ClearItemArrayList();
                         while ((itemString = in.readLine()) != null) {
-                            if (itemString.contains(","))
-                                shoppingList.AddToItemArrayList(new Item(itemString));
+                            if (itemString.contains(",")) {
+                                Item newItem = new Item();
+                                newItem.fromString(itemString);
+                                shoppingList.AddToItemArrayList(newItem);
+                            }
                         }
                         break;
                     }
                     case AddItem: {
                         try {
                             //Add Item
-                            out.println(Integer.toString(ByteCommand.AddItem.ordinal()) + ";" + item.getName() + "\r\n");
+                            out.println(CreateOutLine(Integer.toString(ByteCommand.AddItem.ordinal()), item));
                             out.flush();
                             String line;
-                            StringBuilder sb = new StringBuilder();
                             while ((line = in.readLine()) != null) {
-                                sb.append(line);
+                                item = new Item();
+                                item.fromString(line);
                             }
-                            String itemString = sb.toString();
                             //Set Item
-                            if(itemString.contains(",")) {
-                                if(item.getStore() != null)
-                                {
-                                    socket = new Socket(IpAddress, 5297);
-                                    out = new PrintWriter(socket.getOutputStream(), true);
-                                    in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                                    sb = new StringBuilder();
-                                    //add store
-                                    out.println(Integer.toString(ByteCommand.AddStore.ordinal()) + ";" + item.getStore().getStoreName() + "\r\n");
-                                    out.flush();
-                                    while ((line = in.readLine()) != null) {
-                                        sb.append(line);
-                                    }
-                                    String storeString = sb.toString();
-                                    //Set Store
-                                    if(storeString.contains(","))
-                                    {
-                                        store = new Store(storeString);
-                                    }
-                                    item = new Item(itemString);
-                                    //Attach Store to Item
-                                    socket = new Socket(IpAddress, 5297);
-                                    out = new PrintWriter(socket.getOutputStream(), true);
-                                    in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                                    out.println(Integer.toString(ByteCommand.AttachStoreToItem.ordinal()) + ";" +  item.getItemId() + ";" + store.getStoreId() + "\r\n");
-                                    out.flush();
-                                }
-                                if(item.getItemId() == 0)
-                                    item = new Item(itemString);
-                                //Set Store on Item
-                                if(store != null)
-                                    item.setStore(store);
-                                shoppingList.AddToItemArrayList(item);
-                            }
+                            shoppingList.AddToItemArrayList(item);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                         break;
                     }
                     case UpdateItem: {
-                        out.println(Integer.toString(ByteCommand.UpdateItem.ordinal()) + ";" + item.toString() + "\r\n");
+                        out.println(CreateOutLine(Integer.toString(ByteCommand.UpdateItem.ordinal()), item));
                         out.flush();
+                        String line;
+                        while ((line = in.readLine()) != null) {
+                            item.setItemId(Integer.parseInt(line));
+                        }
+                        shoppingList.AddToItemArrayList(item);
                         break;
                     }
                     case AttachStoreToItem:
                         break;
                     case RemoveItemFromList: {
-                        out.println(Integer.toString(ByteCommand.RemoveItemFromList.ordinal()) + ";" + item.getItemId() + "\r\n");
+                        out.println(CreateOutLine(Integer.toString(ByteCommand.RemoveItemFromList.ordinal()), item.getItemId()));
                         out.flush();
                         break;
                     }
                     case RemoveItemFromLibrary: {
-                        out.println(Integer.toString(ByteCommand.RemoveItemFromLibrary.ordinal()) + ";" + item.getItemId() + "\r\n");
+                        out.println(CreateOutLine(Integer.toString(ByteCommand.RemoveItemFromLibrary.ordinal()), item.getItemId()));
                         out.flush();
                         break;
                     }
                     case AddStore: {
-                        out.println(Integer.toString(ByteCommand.AddStore.ordinal()) + store.toString() + ";" + "\r\n");
+                        out.println(CreateOutLine(Integer.toString(ByteCommand.AddStore.ordinal()), store));
                         out.flush();
                         break;
                     }

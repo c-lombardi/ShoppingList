@@ -89,7 +89,7 @@ public class Shopping_List extends AppCompatActivity {
                                 itemNameView.setText(i.getName().trim());
                                 bestPriceView.setText(i.getBestPrice().toString().trim());
                                 if(i.getStore() != null) {
-                                    storeNameView.setText(i.getStore().getStoreName());
+                                    storeNameView.setText(i.getStore().getName());
                                 } else {
                                     storeNameView.setText("");
                                 }
@@ -124,7 +124,6 @@ public class Shopping_List extends AppCompatActivity {
                                         if (!storeName.isEmpty()) {
                                             Store s = new Store();
                                             s.setStoreName(storeName);
-                                            s.setStoreId(foundItem.getStore().getStoreId());
                                             i.setStore(s);
                                         }
                                         i.setItemId(foundItem.getItemId());
@@ -193,14 +192,17 @@ public class Shopping_List extends AppCompatActivity {
     public static void AddToItemArrayList(final Item newItem)
     {
         try {
-            boolean alreadyExists = false;
+            Item itemFound = null;
             for(Item i : ItemArrayList)
             {
-                if(i.getItemId() == newItem.getItemId())
-                    alreadyExists = true;
+                if(i.getItemId() == newItem.getItemId()) {
+                    itemFound = i;
+                    break;
+                }
             }
-            if(!alreadyExists)
-                ItemArrayList.add(newItem);
+            if(itemFound != null)
+                ItemArrayList.remove(itemFound);
+            ItemArrayList.add(newItem);
         }
         catch (Exception ex)
         {
@@ -344,7 +346,7 @@ public class Shopping_List extends AppCompatActivity {
             try {
                 if(item.getStore() != null) {
                     tvName.setText(item.getName() + " @ " + item.getBestPrice());
-                    tvHome.setText("From: " + item.getStore().getStoreName());
+                    tvHome.setText("From: " + item.getStore().getName());
                 } else {
                     tvName.setText(item.getName() + " @ " + item.getBestPrice());
                     tvHome.setText("");

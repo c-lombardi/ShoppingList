@@ -4,19 +4,19 @@ package com.example.christopher.shopping_list;
  * Created by Christopher on 9/1/2015.
  */
 public class Store {
-    public int getStoreId() {
+    public String getName() {
+        return Name;
+    }
+
+    public Integer getId() {
         return Id;
     }
 
-    public void setStoreId(int storeId) {
-        Id = storeId;
+    public void setId(int id) {
+        Id = id;
     }
 
-    private int Id;
-
-    public String getStoreName() {
-        return Name;
-    }
+    private Integer Id;
 
     public void setStoreName(String storeName) {
         Name = storeName;
@@ -24,14 +24,23 @@ public class Store {
 
     private String Name;
 
-    public Store (String store)
-    {
-        if(store.contains(","))
-        {
-            String[] storeParts = store.split(",");
-            Id = Integer.parseInt(storeParts[0]);
-            Name = storeParts[1];
-        }
+    public Store(String n, int id) {
+        Name = n;
+        Id = id;
+    }
+
+    public Store(String n) {
+        Name = n;
+    }
+
+    public Store(int id) {
+        Id = id;
+    }
+
+    public void fromString(String storeString) {
+        String[] storeParts = storeString.split(",");
+        Id = Integer.parseInt(storeParts[0]);
+        Name = storeParts[1];
     }
 
     public Store(){}
@@ -39,9 +48,11 @@ public class Store {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.valueOf(Id).trim());
-        sb.append(",");
         sb.append(Name.trim());
+        if(Id != null && Id != 0) {
+            sb.append(",");
+            sb.append(String.valueOf(Id).trim());
+        }
         return sb.toString();
     }
 }

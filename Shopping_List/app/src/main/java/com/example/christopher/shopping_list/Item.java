@@ -1,6 +1,7 @@
 package com.example.christopher.shopping_list;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -69,13 +70,45 @@ public class Item {
     //End Getters and Setters
 
     //Constructors
-    public Item(String name, Store store, Float price) throws Exception {
+
+    public Item(int id) {
+        Id = id;
+        ListActive = true;
+        LibraryActive = true;
+    }
+    public Item(String name) {
+        Name = name;
+        ListActive = true;
+        LibraryActive = true;
+    }
+    /*public Item(String name, Float price) {
+        Name = name;
+        BestPrice = price;
+        ListActive = true;
+        LibraryActive = true;
+    }
+    public Item(String name, Store store, Float price) {
         Name = name;
         Store = store;
         BestPrice = price;
         ListActive = true;
         LibraryActive = true;
     }
+    public Item(int Id, String name, Float price) {
+        Name = name;
+        BestPrice = price;
+        ListActive = true;
+        LibraryActive = true;
+    }*/
+    public Item(int id, String name, Store store, Float price) {
+        Id = id;
+        Name = name;
+        Store = store;
+        BestPrice = price;
+        ListActive = true;
+        LibraryActive = true;
+    }
+    //End Constructors
 
     @Override
     public String toString(){
@@ -94,8 +127,8 @@ public class Item {
         return sb.toString();
     }
 
-    public Item (String itemString)
-    {
+
+    public void fromString(String itemString){
         String [] partStrings = itemString.split(",");
         for (int i = 0; i < partStrings.length; i++)
         {
@@ -117,15 +150,15 @@ public class Item {
             }
             else if(i == 4)
             {
-                if(Store == null)
-                    Store = new Store();
-                Store.setStoreId(Integer.parseInt(partStrings[i]));
+                Store = new Store(partStrings[i]);
             }
             else if(i == 5)
             {
-                if(Store == null)
-                    Store = new Store();
-                Store.setStoreName(partStrings[i]);
+                if(Store == null) {
+                    Store = new Store(Integer.parseInt(partStrings[i]));
+                } else {
+                    Store.setId(Integer.parseInt(partStrings[i]));
+                }
             }
         }
     }

@@ -19,17 +19,15 @@ public class StoreQueries {
                 "VALUES (nextval('Store_Seq'), '%s') " +
                 "RETURNING StoreId", storeName);
     }
-    public static final String GetCountFromStores (int count) {
+    public static final String GetCountFromStores () {
         return String.format("SELECT * " +
-                "FROM Stores " +
-                "OFFSET %d " +
-                "LIMIT 10", count);
+                "FROM Stores");
     }
 
-    public static final String UpdateStore (int storeId, String newStoreName) {
+    public static final String UpdateStore (Store store) {
         return String.format("UPDATE Stores " +
                 "SET (StoreName) = ('%s') " +
-                "WHERE StoreId = %d", newStoreName, storeId);
+                "WHERE StoreId = %d", store.getName(), store.getId());
     }
     public static final String RemoveStore (String StoreName) {
         return String.format("DELETE FROM Stores " +
