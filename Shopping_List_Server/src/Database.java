@@ -4,7 +4,7 @@
 
 import java.sql.*;
 
-public class Database implements AutoCloseable {
+public class database implements AutoCloseable {
     Connection db = null;
     PreparedStatement stmt;
     static final String databaseName = "shopping_list_database";
@@ -14,13 +14,13 @@ public class Database implements AutoCloseable {
     static final String password = "password";
     static final String createDatabase = "CREATE DATABASE " + databaseName;
 
-    public Database() throws ClassNotFoundException, SQLException {
+    public database() throws ClassNotFoundException, SQLException {
         Class.forName("org.postgresql.Driver");
         try {
             db = DriverManager.getConnection(url, username, password);
-            CreateDatabase();
+            createDatabase();
             db = DriverManager.getConnection(dbUrl, username, password);
-            CreateTables();
+            createTables();
         }
         catch (Exception ex)
         {
@@ -30,34 +30,34 @@ public class Database implements AutoCloseable {
             db = DriverManager.getConnection(dbUrl, username, password);
         }
     }
-    private void CreateDatabase() throws SQLException {
+    private void createDatabase() throws SQLException {
         stmt = db.prepareStatement(createDatabase);
         stmt.executeUpdate();
         stmt.close();
     }
-    private void CreateTables() throws SQLException {
-        CreateStoresTable();
-        CreateItemsTable();
+    private void createTables() throws SQLException {
+        createStoresTable();
+        createItemsTable();
     }
-    private void CreateStoresTable() throws SQLException {
-        stmt = db.prepareStatement(DatabaseQueries.createStore);
+    private void createStoresTable() throws SQLException {
+        stmt = db.prepareStatement(databaseQueries.CREATE_STORE);
         stmt.executeUpdate();
         stmt.close();
     }
-    private void CreateItemsTable() throws SQLException {
-        stmt = db.prepareStatement(DatabaseQueries.createItem);
+    private void createItemsTable() throws SQLException {
+        stmt = db.prepareStatement(databaseQueries.CREATE_ITEM);
         stmt.executeUpdate();
         stmt.close();
     }
 
-    public void UpdateTableQuery(String query) throws SQLException {
+    public void updateTableQuery(String query) throws SQLException {
         stmt = db.prepareStatement(query);
         stmt.executeUpdate();
     }
 
-    public ResultSet SelectTableQuery(String query) throws SQLException {
+    public ResultSet selectTableQuery(String query) throws SQLException {
         stmt = db.prepareStatement(query);
-        ResultSet rs = stmt.executeQuery();
+        final ResultSet rs = stmt.executeQuery();
         return rs;
     }
 

@@ -1,12 +1,12 @@
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Christopher on 10/2/2015.
  */
 public interface CRUD<T> {
-    void Create();
-    void Read();
-    ArrayList<T> ReadAll();
-    void Update(boolean justFlipListActive);
-    void Delete(boolean deleteFromLibrary);
+    void create();
+    void read();
+    List<T> readAll();
+    void update(boolean justFlipListActive);
+    void delete(boolean deleteFromLibrary);
 }

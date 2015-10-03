@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Christopher on 9/2/2015.
@@ -38,85 +38,85 @@ public class Server implements Runnable {
                 thread.sleep(1000);
                 while (!done) {
                     try {
-                        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                        StringBuilder sb = new StringBuilder();
+                        final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                        final StringBuilder sb = new StringBuilder();
                         while (in.ready()) {
                             sb.append(in.readLine());
                         }
                         String MessageFromClient = sb.toString();
                         //Get the command from the client
-                        char commandCharFromClient = MessageFromClient.charAt(0);
-                        int valueOfFirstChar = Character.getNumericValue(commandCharFromClient);
-                        ByteCommand command = ByteCommand.values()[valueOfFirstChar];
+                        final char commandCharFromClient = MessageFromClient.charAt(0);
+                        final int valueOfFirstChar = Character.getNumericValue(commandCharFromClient);
+                        final ByteCommand command = ByteCommand.values()[valueOfFirstChar];
                         //Parse String To items and stores
                         try {
                             MessageFromClient = MessageFromClient.substring(2); //Remove first command char and semicolon
                         } catch (Exception ex){}
                         PrintWriter out = new PrintWriter(socket.getOutputStream());
                         switch (command) {
-                            case GetItems: {
-                                Item item = new Item();
-                                ArrayList<Item> ItemList = item.ReadAll();
+                            case getItems: {
+                                final Item item = new Item();
+                                final List<Item> ItemList = item.readAll();
                                 for (Item i : ItemList) {
                                     out.println(i.toString());
                                     out.flush();
                                 }
                                 break;
                             }
-                            case AddItem: {
+                            case addItem: {
                                 if (!(MessageFromClient.length() < 2)) {
                                     //Check If Already Exists
-                                    Item item = new Item();
+                                    final Item item = new Item();
                                     item.fromString(MessageFromClient);
-                                    item.Create();
+                                    item.create();
                                     out.println(item.toString());
                                     out.flush();
                                 }
                                 break;
                             }
-                            case UpdateItem: {
-                                Item newItem = new Item();
+                            case updateItem: {
+                                final Item newItem = new Item();
                                 newItem.fromString(MessageFromClient);
-                                newItem.Update(false);
+                                newItem.update(false);
                                 out.println(newItem.getId());
                                 out.flush();
                                 break;
                             }
-                            case AttachStoreToItem: {
-                                String[] StoreAndItemIds = MessageFromClient.split(";");
-                                int ItemId = Integer.parseInt(StoreAndItemIds[0]);
-                                int StoreId = Integer.parseInt(StoreAndItemIds[1]);
-                                Item itemToAttachTo = new Item(ItemId, "", new Store(StoreId), (float) 0);
-                                itemToAttachTo.AttachStore();
+                            case attachStoreToItem: {
+                                final String[] StoreAndItemIds = MessageFromClient.split(";");
+                                final int ItemId = Integer.parseInt(StoreAndItemIds[0]);
+                                final int StoreId = Integer.parseInt(StoreAndItemIds[1]);
+                                final Item itemToAttachTo = new Item(ItemId, "", new Store(StoreId), (float) 0);
+                                itemToAttachTo.attachStore();
                                 break;
                             }
-                            case RemoveItemFromList: {
-                                int ItemIdToDelete = Integer.parseInt(MessageFromClient);
-                                Item item = new Item(ItemIdToDelete);
-                                item.Delete(false);
+                            case removeItemFromList: {
+                                final int ItemIdToDelete = Integer.parseInt(MessageFromClient);
+                                final Item item = new Item(ItemIdToDelete);
+                                item.delete(false);
                                 break;
                             }
-                            case RemoveItemFromLibrary: {
-                                int ItemIdToDelete = Integer.parseInt(MessageFromClient);
-                                Item item = new Item(ItemIdToDelete);
-                                item.Delete(true);
+                            case removeItemFromLibrary: {
+                                final int ItemIdToDelete = Integer.parseInt(MessageFromClient);
+                                final Item item = new Item(ItemIdToDelete);
+                                item.delete(true);
                                 break;
                             }
-                            case AddStore: {
-                                Store store = new Store(MessageFromClient);
-                                store.Create();
+                            case addStore: {
+                                final Store store = new Store(MessageFromClient);
+                                store.create();
                                 out.println(store.toString());
                                 out.flush();
                                 break;
                             }
-                            case RemoveStore: {
-                                Store store = new Store(Integer.parseInt(MessageFromClient));
-                                store.Delete(false);
+                            case removeStore: {
+                                final Store store = new Store(Integer.parseInt(MessageFromClient));
+                                store.delete(false);
                                 break;
                             }
-                            case GetStore: {
-                                Store store = new Store(Integer.parseInt(MessageFromClient));
-                                store.Read();
+                            case getStore: {
+                                final Store store = new Store(Integer.parseInt(MessageFromClient));
+                                store.read();
                                 out.println(store.toString());
                                 out.flush();
                                 break;

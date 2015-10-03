@@ -1,6 +1,7 @@
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Christopher on 9/1/2015.
@@ -12,10 +13,6 @@ public class Store implements CRUD<Store> {
 
     public Integer getId() {
         return Id;
-    }
-
-    public void setId(int id) {
-        Id = id;
     }
 
     private String Name;
@@ -35,17 +32,17 @@ public class Store implements CRUD<Store> {
     }
 
 
-    public Store() throws SQLException, ClassNotFoundException {
+    public Store() {
     }
     public void fromString(String storeString) {
-        String[] storeParts = storeString.split(",");
+        final String[] storeParts = storeString.split(",");
         Id = Integer.parseInt(storeParts[0]);
         Name = storeParts[1];
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append(Name.trim());
         if(Id != null && Id != 0) {
             sb.append(",");
@@ -55,27 +52,27 @@ public class Store implements CRUD<Store> {
     }
 
     @Override
-    public void Create() {
-        try (Database db = new Database()) {
-            ResultSet rs = db.SelectTableQuery(StoreQueries.AddStore(Name));
+    public void create() {
+        try (final database db = new database()) {
+            final ResultSet rs = db.selectTableQuery(StoreQueries.addStore(Name));
             while (rs.next()) {
                 Id = rs.getInt("StoreId");
             }
         } catch (Exception ex) {
-            Read();
+            read();
         }
     }
 
     @Override
-    public void Read() {
-        try (Database db = new Database()) {
+    public void read() {
+        try (final database db = new database()) {
             if(Id != null && Id != 0) {
-                ResultSet rs = db.SelectTableQuery(StoreQueries.GetStoreById(Id));
+                final ResultSet rs = db.selectTableQuery(StoreQueries.getStoreById(Id));
                 while (rs.next()) {
                     Name = rs.getString("StoreName");
                 }
             } else if(Name != null) {
-                ResultSet rs = db.SelectTableQuery(StoreQueries.GetStoreByName(Name));
+                final ResultSet rs = db.selectTableQuery(StoreQueries.getStoreByName(Name));
                 while (rs.next()) {
                     Id = rs.getInt("StoreId");
                 }
@@ -86,10 +83,10 @@ public class Store implements CRUD<Store> {
     }
 
     @Override
-    public ArrayList<Store> ReadAll() {
-        ArrayList<Store> returnList = new ArrayList<>();
-        try (Database db = new Database()) {
-            ResultSet rs = db.SelectTableQuery(StoreQueries.GetCountFromStores());
+    public List<Store> readAll() {
+        final List<Store> returnList = new ArrayList<>();
+        try (final database db = new database()) {
+            final ResultSet rs = db.selectTableQuery(StoreQueries.getCountFromStores());
         while(rs.next()){
                 returnList.add(new Store(rs.getString("StoreName"), rs.getInt("StoreId")));
             }
@@ -98,27 +95,27 @@ public class Store implements CRUD<Store> {
     }
 
     @Override
-    public void Update(boolean justFlipListActive) {
-        try (Database db = new Database()) {
+    public void update(boolean justFlipListActive) {
+        try (final database db = new database()) {
             if (Name != null) {
                 if (Id != null) {
-                    db.UpdateTableQuery(StoreQueries.UpdateStore(this));
+                    db.updateTableQuery(StoreQueries.updateStore(this));
                 } else {
                     throw new SQLException();
                 }
             }
         } catch (Exception ex) {
-            Create();
+            create();
         }
     }
 
     @Override
-    public void Delete(boolean deleteFromLibrary) {
-        try (Database db = new Database()) {
+    public void delete(boolean deleteFromLibrary) {
+        try (final database db = new database()) {
             if (Id != null) {
-                db.UpdateTableQuery(StoreQueries.RemoveStore(Id));
+                db.updateTableQuery(StoreQueries.removeStore(Id));
             } else if (Name != null) {
-                db.UpdateTableQuery(StoreQueries.RemoveStore(Name));
+                db.updateTableQuery(StoreQueries.removeStore(Name));
             }
         } catch (Exception ex) {
 

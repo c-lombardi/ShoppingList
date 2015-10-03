@@ -2,13 +2,13 @@
  * Created by Christopher on 9/3/2015.
  */
 public enum ByteCommand {
-    GetItems,
-    AddItem,
-    UpdateItem,
-    AttachStoreToItem,
-    RemoveItemFromList,
-    RemoveItemFromLibrary,
-    AddStore,
-    RemoveStore,
-    GetStore,
+    getItems,
+    addItem,
+    updateItem,
+    attachStoreToItem,
+    removeItemFromList,
+    removeItemFromLibrary,
+    addStore,
+    removeStore,
+    getStore,
 }

@@ -130,37 +130,16 @@ public class Item {
 
     public void fromString(String itemString){
         String [] partStrings = itemString.split(",");
-        for (int i = 0; i < partStrings.length; i++)
-        {
-            if(i == 0)
-            {
-                Id = Integer.parseInt(partStrings[i]);
-            }
-            else if(i == 1)
-            {
-                Name = partStrings[i];
-            }
-            else if(i == 2)
-            {
-                BestPrice = Float.parseFloat(partStrings[i]);
-            }
-            else if(i == 3)
-            {
-                ListActive = Boolean.parseBoolean(partStrings[i]);
-            }
-            else if(i == 4)
-            {
-                Store = new Store(partStrings[i]);
-            }
-            else if(i == 5)
-            {
-                if(Store == null) {
-                    Store = new Store(Integer.parseInt(partStrings[i]));
-                } else {
-                    Store.setId(Integer.parseInt(partStrings[i]));
-                }
-            }
+        Id = Integer.parseInt(partStrings[0]);
+        Name = partStrings[1];
+        BestPrice = Float.parseFloat(partStrings[2]);
+        ListActive = Boolean.parseBoolean(partStrings[3]);
+        if (partStrings.length >= 6) {
+            Store = new Store(partStrings[4], Integer.parseInt(partStrings[5]));
+        } else if (partStrings.length >= 5) {
+            Store = new Store(partStrings[4]);
         }
+
     }
 
     public Item() {}
