@@ -22,8 +22,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 public class Shopping_List extends AppCompatActivity {
-    static ArrayList<Item> ItemArrayList;
-    static ItemsAdapter adapter;
+    private static ArrayList<Item> ItemArrayList;
+    private static ItemsAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
