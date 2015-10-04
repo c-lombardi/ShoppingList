@@ -49,7 +49,7 @@ public class Item {
         sb.append(String.valueOf(BestPrice).trim());
         sb.append(",");
         sb.append(String.valueOf(ListActive).trim());
-        if(Store != null && Store.getId() != 0) {
+        if(Store != null && Store.getName() != null) {
             sb.append(",");
             sb.append(Store.toString());
         }

@@ -75,12 +75,8 @@ public class itemQueries {
     public static final String getAllItemsFromList() {
         return String.format("SELECT Items.ItemId, Items.ItemName, Items.BestPrice, Items.ListActive, Items.LibraryActive, Stores.StoreId, Stores.StoreName " +
                 "FROM Items " +
-                "INNER JOIN Stores ON Items.StoreId = Stores.StoreId " +
-                "WHERE Items.ListActive = TRUE " +
-                "UNION " +
-                "SELECT Items.ItemId, Items.ItemName, Items.BestPrice, Items.ListActive, Items.LibraryActive, 0, '' " +
-                "FROM Items " +
-                "WHERE Items.ListActive = TRUE AND Items.StoreId = NULL");
+                "LEFT JOIN Stores ON Items.StoreId = Stores.StoreId " +
+                "WHERE Items.ListActive = TRUE");
     }
     public static final String getAllItemsFromLibrary = "SELECT * " +
             "FROM Items " +
