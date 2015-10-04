@@ -73,11 +73,6 @@ public class Item {
         public ItemBuilder(){
         }
 
-        public ItemBuilder name(String name){
-            Name = name;
-            return this;
-        }
-
         public ItemBuilder id(int id){
             Id = id;
             return this;
@@ -85,16 +80,6 @@ public class Item {
 
         public ItemBuilder bestPrice(Float bestPrice){
             BestPrice = bestPrice;
-            return this;
-        }
-
-        public ItemBuilder listActive (Boolean listActive){
-            ListActive = listActive;
-            return this;
-        }
-
-        public ItemBuilder libraryActive (Boolean libraryActive){
-            LibraryActive = libraryActive;
             return this;
         }
 
@@ -250,5 +235,4 @@ public class Item {
             return new Item(this);
         }
     }
-    //End Constructors
 }

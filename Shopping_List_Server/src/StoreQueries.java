@@ -2,8 +2,6 @@
  * Created by Christopher on 9/2/2015.
  */
 public class StoreQueries {
-    private StoreQueries(){}
-
     public static final String getStoreById(int storeId) {
         return String.format("SELECT * " +
                 "FROM Stores " +

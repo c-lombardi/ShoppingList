@@ -59,11 +59,6 @@ public class Store {
             return this;
         }
 
-        public StoreBuilder Name (String name) {
-            Name = name;
-            return this;
-        }
-
         @Override
         public StoreBuilder create() {
             try (final database db = new database()) {
