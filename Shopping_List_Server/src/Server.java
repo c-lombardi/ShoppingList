@@ -63,41 +63,20 @@ public class Server implements Runnable {
                             }
                             case addItem: {
                                 if (!(MessageFromClient.length() < 2)) {
-                                    out.println(new Item.ItemBuilder().fromString(MessageFromClient).create().build().toString());
+                                    final Item inputItem = Item.fromString(MessageFromClient);
+                                    out.println(new Item.ItemBuilder(inputItem.getId(), inputItem.getName()).bestPrice(inputItem.getBestPrice()).listActive(true).store(inputItem.getStore()).libraryActive(true).create().build().toString());
                                     out.flush();
                                 }
                                 break;
                             }
                             case updateItem: {
-                                out.println(new Item.ItemBuilder().fromString(MessageFromClient).update(false).build().getId());
+                                final Item inputItem = Item.fromString(MessageFromClient);
+                                out.println(new Item.ItemBuilder(inputItem.getId(), inputItem.getName()).bestPrice(inputItem.getBestPrice()).listActive(true).store(inputItem.getStore()).libraryActive(true).update(false).build().getId());
                                 out.flush();
-                                break;
-                            }
-                            case attachStoreToItem: {
-                                final String[] StoreAndItemIds = MessageFromClient.split(";");
-                                new Item.ItemBuilder(Integer.parseInt(StoreAndItemIds[0]), "").store(new Store.StoreBuilder(Integer.parseInt(StoreAndItemIds[1])).build()).bestPrice((float) 0).attachStore();
                                 break;
                             }
                             case removeItemFromList: {
                                 new Item.ItemBuilder().id(Integer.parseInt(MessageFromClient)).delete(false);
-                                break;
-                            }
-                            case removeItemFromLibrary: {
-                                new Item.ItemBuilder().id(Integer.parseInt(MessageFromClient)).delete(true);
-                                break;
-                            }
-                            case addStore: {
-                                out.println(new Store.StoreBuilder().fromString(MessageFromClient).create().build().toString());
-                                out.flush();
-                                break;
-                            }
-                            case removeStore: {
-                                new Store.StoreBuilder(Integer.parseInt(MessageFromClient)).delete(false);
-                                break;
-                            }
-                            case getStore: {
-                                out.println(new Store.StoreBuilder(Integer.parseInt(MessageFromClient)).read().build().toString());
-                                out.flush();
                                 break;
                             }
                         }

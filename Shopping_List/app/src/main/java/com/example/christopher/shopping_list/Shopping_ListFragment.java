@@ -18,8 +18,6 @@ public class Shopping_ListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_shopping__list, container, false);
-        ListView list = (ListView) view.findViewById(R.id.listView);
         return inflater.inflate(R.layout.fragment_shopping__list, container, false);
     }
 }

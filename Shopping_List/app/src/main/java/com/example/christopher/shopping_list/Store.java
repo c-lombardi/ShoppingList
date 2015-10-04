@@ -4,55 +4,53 @@ package com.example.christopher.shopping_list;
  * Created by Christopher on 9/1/2015.
  */
 public class Store {
+    private String Name;
+    private int Id;
+
+    private Store(StoreBuilder storeBuilder) {
+        Name = storeBuilder.Name;
+        Id = storeBuilder.Id;
+    }
+
     public String getName() {
         return Name;
     }
 
-    public Integer getId() {
+    public int getId() {
         return Id;
     }
 
-    public void setId(int id) {
-        Id = id;
-    }
-
-    private Integer Id;
-
-    public void setStoreName(String storeName) {
-        Name = storeName;
-    }
-
-    private String Name;
-
-    public Store(String n, int id) {
-        Name = n;
-        Id = id;
-    }
-
-    public Store(String n) {
-        Name = n;
-    }
-
-    public Store(int id) {
-        Id = id;
-    }
-
-    public void fromString(String storeString) {
-        String[] storeParts = storeString.split(",");
-        Id = Integer.parseInt(storeParts[0]);
-        Name = storeParts[1];
-    }
-
-    public Store(){}
-
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append(Name.trim());
-        if(Id != null && Id != 0) {
-            sb.append(",");
-            sb.append(String.valueOf(Id).trim());
-        }
+        sb.append(",");
+        sb.append(String.valueOf(Id).trim());
         return sb.toString();
+    }
+
+    public static Store fromString(String storeString) {
+        final String[] storeParts = storeString.split(",");
+        final StoreBuilder sb = new StoreBuilder(storeParts[1], Integer.parseInt(storeParts[0]));
+        return sb.build();
+    }
+
+    public static class StoreBuilder {
+        private final String Name;
+        private final Integer Id;
+
+        public StoreBuilder(String name, int id) {
+            Name = name;
+            Id = id;
+        }
+
+        public StoreBuilder(String name) {
+            Name = name;
+            Id = 0;
+        }
+
+        public Store build() {
+            return new Store(this);
+        }
     }
 }

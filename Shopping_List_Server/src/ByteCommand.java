@@ -5,10 +5,5 @@ public enum ByteCommand {
     getItems,
     addItem,
     updateItem,
-    attachStoreToItem,
     removeItemFromList,
-    removeItemFromLibrary,
-    addStore,
-    removeStore,
-    getStore,
 }

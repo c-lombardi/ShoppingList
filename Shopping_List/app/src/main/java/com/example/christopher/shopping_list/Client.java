@@ -4,44 +4,34 @@ import android.os.AsyncTask;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.widget.ListView;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.Objects;
 
 /**
  * Created by Christopher on 9/10/2015.
  */
 public class Client extends AsyncTask<String, Client, String> {
-    private ByteCommand command;
-    private Socket socket = null;
-    private Store store;
-    private Item item;
-    private ListView listView;
-    private Shopping_List shoppingList;
-    private SwipeRefreshLayout swipeLayout;
-    private String IpAddress;
-    public Client(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, Item i, String ip)
+    private final ByteCommand command;
+    private Socket socket;
+    private final Item item;
+    private final ListView listView;
+    private final Shopping_List shoppingList;
+    private final SwipeRefreshLayout swipeLayout;
+    private final String ipAddress;
+
+    private Client(ClientBuilder clientBuilder)
     {
-        listView = lv;
-        swipeLayout = srl;
-        item = i;
+        listView = clientBuilder.listView;
+        swipeLayout = clientBuilder.swipeLayout;
+        item = clientBuilder.item;
         shoppingList = new Shopping_List();
-        command = cmd;
-        IpAddress = ip;
-    }
-    public Client(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, String ip)
-    {
-        listView = lv;
-        swipeLayout = srl;
-        shoppingList = new Shopping_List();
-        command = cmd;
-        IpAddress = ip;
+        command = clientBuilder.command;
+        ipAddress = clientBuilder.ipAddress;
     }
     private String CreateOutLine(Object ... objects){
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         for(int i = 0; i < objects.length; i++)
         {
             sb.append(objects[i].toString());
@@ -67,73 +57,50 @@ public class Client extends AsyncTask<String, Client, String> {
         boolean done = false;
         while (!done) {
             try {
-                socket = new Socket(IpAddress, 5297);
+                socket = new Socket(ipAddress, 5297);
                 socket.setSoTimeout(300000);
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                final PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 switch (command) {
-                    case GetItems: {
-                        out.println(CreateOutLine(Integer.toString(ByteCommand.GetItems.ordinal())));
+                    case getItems: {
+                        out.println(CreateOutLine(Integer.toString(ByteCommand.getItems.ordinal())));
                         out.flush();
-                        String itemString;
                         shoppingList.ClearItemArrayList();
+                        String itemString;
                         while ((itemString = in.readLine()) != null) {
                             if (itemString.contains(",")) {
-                                Item newItem = new Item();
-                                newItem.fromString(itemString);
-                                shoppingList.AddToItemArrayList(newItem);
+                                shoppingList.AddToItemArrayList(Item.fromString(itemString));
                             }
                         }
                         break;
                     }
-                    case AddItem: {
+                    case addItem: {
                         try {
-                            //Add Item
-                            out.println(CreateOutLine(Integer.toString(ByteCommand.AddItem.ordinal()), item));
+                            out.println(CreateOutLine(Integer.toString(ByteCommand.addItem.ordinal()), item));
                             out.flush();
                             String line;
                             while ((line = in.readLine()) != null) {
-                                item = new Item();
-                                item.fromString(line);
+                                shoppingList.AddToItemArrayList(Item.fromString(line));
                             }
-                            //Set Item
-                            shoppingList.AddToItemArrayList(item);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                         break;
                     }
-                    case UpdateItem: {
-                        out.println(CreateOutLine(Integer.toString(ByteCommand.UpdateItem.ordinal()), item));
+                    case updateItem: {
+                        out.println(CreateOutLine(Integer.toString(ByteCommand.updateItem.ordinal()), item));
                         out.flush();
                         String line;
                         while ((line = in.readLine()) != null) {
-                            item.setItemId(Integer.parseInt(line));
+                            shoppingList.AddToItemArrayList(new Item.ItemBuilder(Integer.parseInt(line), item.getName()).bestPrice(item.getBestPrice()).store(item.getStore()).build());
                         }
-                        shoppingList.AddToItemArrayList(item);
                         break;
                     }
-                    case AttachStoreToItem:
-                        break;
-                    case RemoveItemFromList: {
-                        out.println(CreateOutLine(Integer.toString(ByteCommand.RemoveItemFromList.ordinal()), item.getItemId()));
+                    case removeItemFromList: {
+                        out.println(CreateOutLine(Integer.toString(ByteCommand.removeItemFromList.ordinal()), item.getId()));
                         out.flush();
                         break;
                     }
-                    case RemoveItemFromLibrary: {
-                        out.println(CreateOutLine(Integer.toString(ByteCommand.RemoveItemFromLibrary.ordinal()), item.getItemId()));
-                        out.flush();
-                        break;
-                    }
-                    case AddStore: {
-                        out.println(CreateOutLine(Integer.toString(ByteCommand.AddStore.ordinal()), store));
-                        out.flush();
-                        break;
-                    }
-                    case RemoveStore:
-                        break;
-                    case GetStore:
-                        break;
                 }
                 in.close();
                 out.close();
@@ -141,10 +108,9 @@ public class Client extends AsyncTask<String, Client, String> {
             }
             catch (SocketTimeoutException ex)
             {
-                done = true;
                 return "Timed Out";
             }
-            catch (IOException ie) {
+            catch (Exception ex) {
                 done = true;
             }
         }
@@ -159,5 +125,33 @@ public class Client extends AsyncTask<String, Client, String> {
             swipeLayout.setRefreshing(false);
         shoppingList.DisplayToast(str);
         shoppingList.NotifyAdapterThatItemListChanged();
+    }
+
+    public static class ClientBuilder {
+        private final ByteCommand command;
+        private Item item;
+        private final ListView listView;
+        private final SwipeRefreshLayout swipeLayout;
+        private final String ipAddress;
+
+        public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, Item i, String ip)
+        {
+            listView = lv;
+            swipeLayout = srl;
+            item = i;
+            command = cmd;
+            ipAddress = ip;
+        }
+        public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, String ip)
+        {
+            listView = lv;
+            swipeLayout = srl;
+            command = cmd;
+            ipAddress = ip;
+        }
+
+        public Client build() {
+            return new Client(this);
+        }
     }
 }

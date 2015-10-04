@@ -7,12 +7,12 @@ import java.util.List;
  * Created by Christopher on 9/1/2015.
  */
 public class Item {
-    private Integer Id;
-    private String Name;
-    private Store Store;
-    private Boolean ListActive;
-    private Boolean LibraryActive;
-    private Float BestPrice;
+    private final int Id;
+    private final String Name;
+    private final Store Store;
+    private final boolean ListActive;
+    private final boolean LibraryActive;
+    private final float BestPrice;
 
     private Item(ItemBuilder itemBuilder) {
         Id = itemBuilder.Id;
@@ -23,11 +23,11 @@ public class Item {
         BestPrice = itemBuilder.BestPrice;
     }
 
-    public Float getBestPrice() {
+    public float getBestPrice() {
         return BestPrice;
     }
 
-    public Integer getId() {
+    public int getId() {
         return Id;
     }
 
@@ -49,21 +49,31 @@ public class Item {
         sb.append(String.valueOf(BestPrice).trim());
         sb.append(",");
         sb.append(String.valueOf(ListActive).trim());
-        if(Store != null && Store.getId() != 0)
-        {
+        if(Store != null && Store.getId() != 0) {
             sb.append(",");
             sb.append(Store.toString());
         }
         return sb.toString();
     }
 
+    public static Item fromString(String itemString) throws SQLException, ClassNotFoundException {
+        final String [] partStrings = itemString.split(",");
+        final ItemBuilder ib = new ItemBuilder(Integer.parseInt(partStrings[0]), partStrings[1]).bestPrice(Float.parseFloat(partStrings[2])).listActive(Boolean.parseBoolean(partStrings[3]));
+        if (partStrings.length >= 6) {
+            ib.store(new Store.StoreBuilder(partStrings[4], Integer.parseInt(partStrings[5])).build());
+        } else if (partStrings.length >= 5) {
+            ib.store(new Store.StoreBuilder(partStrings[4]).build());
+        }
+        return ib.build();
+    }
+
     public static class ItemBuilder implements CRUD<ItemBuilder> {
-        private Integer Id;
+        private int Id;
         private String Name;
         private Store Store;
-        private Boolean ListActive;
-        private Boolean LibraryActive;
-        private Float BestPrice;
+        private boolean ListActive;
+        private boolean LibraryActive;
+        private float BestPrice;
 
         public ItemBuilder(int id, String name){
             Name = name;
@@ -78,7 +88,7 @@ public class Item {
             return this;
         }
 
-        public ItemBuilder bestPrice(Float bestPrice){
+        public ItemBuilder bestPrice(float bestPrice){
             BestPrice = bestPrice;
             return this;
         }
@@ -88,17 +98,13 @@ public class Item {
             return this;
         }
 
-        public ItemBuilder fromString(String itemString) throws SQLException, ClassNotFoundException {
-            final String [] partStrings = itemString.split(",");
-            Id = Integer.parseInt(partStrings[0]);
-            Name = partStrings[1];
-            BestPrice = Float.parseFloat(partStrings[2]);
-            ListActive = Boolean.parseBoolean(partStrings[3]);
-            if (partStrings.length >= 6) {
-                Store = new Store.StoreBuilder(partStrings[4], Integer.parseInt(partStrings[5])).build();
-            } else if (partStrings.length >= 5) {
-                Store = new Store.StoreBuilder(partStrings[4]).build();
-            }
+        public ItemBuilder listActive (boolean listActive) {
+            ListActive = listActive;
+            return this;
+        }
+
+        public ItemBuilder libraryActive (boolean libraryActive) {
+            LibraryActive = libraryActive;
             return this;
         }
 
@@ -129,7 +135,7 @@ public class Item {
         @Override
         public ItemBuilder read() {
             try (final database db = new database()) {
-                if(Id != null && Id != 0) {
+                if(Id != 0) {
                     ResultSet rs = db.selectTableQuery(itemQueries.getItemById(Id));
                     while (rs.next()) {
                         Name = rs.getString("ItemName");
@@ -183,13 +189,13 @@ public class Item {
                         Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
                     }
                     if(!justFlipListActive) {
-                        if (Id != null && Id != 0) {
+                        if (Id != 0) {
                             db.updateTableQuery(itemQueries.updateItemById(this.build()));
                         } else {
                             db.updateTableQuery(itemQueries.updateItemByName(this.build()));
                         }
                     } else {
-                        if (Id != null && Id != 0) {
+                        if (Id != 0) {
                             db.updateTableQuery(itemQueries.makeActiveById(this.build()));
                         } else {
                             db.updateTableQuery(itemQueries.makeActiveByName(this.build()));
@@ -206,7 +212,7 @@ public class Item {
         @Override
         public ItemBuilder delete(boolean deleteFromLibrary) {
             try (final database db = new database()) {
-                if (Id != null) {
+                if (Id != 0) {
                     if(!deleteFromLibrary) {
                         db.updateTableQuery(itemQueries.removeItemFromList(Id));
                     } else {
@@ -222,7 +228,7 @@ public class Item {
 
         public ItemBuilder attachStore(){
             try (final database db = new database()) {
-                if(Store.getId() != null) {
+                if(Store.getId() != 0) {
                     db.updateTableQuery(itemQueries.addStoreToItem(Id, Store.getId()));
                 }
             } catch(Exception ex) {
