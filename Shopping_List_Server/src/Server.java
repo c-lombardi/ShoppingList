@@ -2,7 +2,6 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
 
 /**
  * Created by Christopher on 9/2/2015.
@@ -55,69 +54,48 @@ public class Server implements Runnable {
                         PrintWriter out = new PrintWriter(socket.getOutputStream());
                         switch (command) {
                             case getItems: {
-                                final Item item = new Item();
-                                final List<Item> ItemList = item.readAll();
-                                for (final Item i : ItemList) {
-                                    out.println(i.toString());
+                                for (final Item.ItemBuilder i : new Item.ItemBuilder().readAll()) {
+                                    out.println(i.build().toString());
                                     out.flush();
                                 }
                                 break;
                             }
                             case addItem: {
                                 if (!(MessageFromClient.length() < 2)) {
-                                    //Check If Already Exists
-                                    final Item item = new Item();
-                                    item.fromString(MessageFromClient);
-                                    item.create();
-                                    out.println(item.toString());
+                                    out.println(new Item.ItemBuilder().fromString(MessageFromClient).fromString(MessageFromClient).create().build().toString());
                                     out.flush();
                                 }
                                 break;
                             }
                             case updateItem: {
-                                final Item newItem = new Item();
-                                newItem.fromString(MessageFromClient);
-                                newItem.update(false);
-                                out.println(newItem.getId());
+                                out.println(new Item.ItemBuilder().fromString(MessageFromClient).update(false).build().getId());
                                 out.flush();
                                 break;
                             }
                             case attachStoreToItem: {
                                 final String[] StoreAndItemIds = MessageFromClient.split(";");
-                                final int ItemId = Integer.parseInt(StoreAndItemIds[0]);
-                                final int StoreId = Integer.parseInt(StoreAndItemIds[1]);
-                                final Item itemToAttachTo = new Item(ItemId, "", new Store(StoreId), (float) 0);
-                                itemToAttachTo.attachStore();
+                                new Item.ItemBuilder(Integer.parseInt(StoreAndItemIds[0]), "").store(new Store.StoreBuilder(Integer.parseInt(StoreAndItemIds[1])).build()).bestPrice((float) 0).attachStore();
                                 break;
                             }
                             case removeItemFromList: {
-                                final int ItemIdToDelete = Integer.parseInt(MessageFromClient);
-                                final Item item = new Item(ItemIdToDelete);
-                                item.delete(false);
+                                new Item.ItemBuilder().id(Integer.parseInt(MessageFromClient)).delete(false);
                                 break;
                             }
                             case removeItemFromLibrary: {
-                                final int ItemIdToDelete = Integer.parseInt(MessageFromClient);
-                                final Item item = new Item(ItemIdToDelete);
-                                item.delete(true);
+                                new Item.ItemBuilder().id(Integer.parseInt(MessageFromClient)).delete(true);
                                 break;
                             }
                             case addStore: {
-                                final Store store = new Store(MessageFromClient);
-                                store.create();
-                                out.println(store.toString());
+                                out.println(new Store.StoreBuilder().fromString(MessageFromClient).create().build().toString());
                                 out.flush();
                                 break;
                             }
                             case removeStore: {
-                                final Store store = new Store(Integer.parseInt(MessageFromClient));
-                                store.delete(false);
+                                new Store.StoreBuilder(Integer.parseInt(MessageFromClient)).delete(false);
                                 break;
                             }
                             case getStore: {
-                                final Store store = new Store(Integer.parseInt(MessageFromClient));
-                                store.read();
-                                out.println(store.toString());
+                                out.println(new Store.StoreBuilder(Integer.parseInt(MessageFromClient)).read().build().toString());
                                 out.flush();
                                 break;
                             }

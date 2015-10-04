@@ -6,13 +6,22 @@ import java.util.List;
 /**
  * Created by Christopher on 9/1/2015.
  */
-public class Item implements CRUD<Item> {
+public class Item {
     private Integer Id;
     private String Name;
     private Store Store;
     private Boolean ListActive;
     private Boolean LibraryActive;
     private Float BestPrice;
+
+    private Item(ItemBuilder itemBuilder) {
+        Id = itemBuilder.Id;
+        Name = itemBuilder.Name;
+        Store = itemBuilder.Store;
+        ListActive = itemBuilder.ListActive;
+        LibraryActive = itemBuilder.LibraryActive;
+        BestPrice = itemBuilder.BestPrice;
+    }
 
     public Float getBestPrice() {
         return BestPrice;
@@ -29,35 +38,6 @@ public class Item implements CRUD<Item> {
     public Store getStore() {
         return Store;
     }
-    //Constructors
-    public Item(int id) {
-        Id = id;
-        ListActive = true;
-        LibraryActive = true;
-    }
-    public Item(int id, String name, Store store, Float price) {
-        Id = id;
-        Name = name;
-        Store = store;
-        BestPrice = price;
-        ListActive = true;
-        LibraryActive = true;
-    }
-
-    public void fromString(String itemString) throws SQLException, ClassNotFoundException {
-        final String [] partStrings = itemString.split(",");
-        Id = Integer.parseInt(partStrings[0]);
-        Name = partStrings[1];
-        BestPrice = Float.parseFloat(partStrings[2]);
-        ListActive = Boolean.parseBoolean(partStrings[3]);
-        if (partStrings.length >= 6) {
-            Store = new Store(partStrings[4], Integer.parseInt(partStrings[5]));
-        } else if (partStrings.length >= 5) {
-            Store = new Store(partStrings[4]);
-        }
-    }
-
-    public Item() {}
 
     @Override
     public String toString(){
@@ -77,120 +57,197 @@ public class Item implements CRUD<Item> {
         return sb.toString();
     }
 
-    @Override
-    public void create() {
-        try (final database db = new database()) {
-            if(Store != null) {
-                Store.create();
-            }
-            final ResultSet rs = db.selectTableQuery(itemQueries.addItem(this));
-            while (rs.next()) {
-                Id = rs.getInt("ItemId");
-                ListActive = true;
-                LibraryActive = true;
-            }
-        } catch (Exception ex) {
-            if(Store != null || BestPrice != 0) {
-                update(false);
-            } else {
-                update(true);
-            }
-            read();
-        }
-    }
+    public static class ItemBuilder implements CRUD<ItemBuilder> {
+        private Integer Id;
+        private String Name;
+        private Store Store;
+        private Boolean ListActive;
+        private Boolean LibraryActive;
+        private Float BestPrice;
 
-    @Override
-    public void read() {
-        try (final database db = new database()) {
-            if(Id != null && Id != 0) {
-                ResultSet rs = db.selectTableQuery(itemQueries.getItemById(Id));
-                while (rs.next()) {
-                    Name = rs.getString("ItemName");
-                    BestPrice = rs.getFloat("BestPrice");
-                    ListActive = rs.getBoolean("ListActive");
-                    LibraryActive = rs.getBoolean("LibraryActive");
-                    Store = new Store(rs.getInt("StoreId"));
-                    Store.read();
+        public ItemBuilder(int id, String name){
+            Name = name;
+            Id = id;
+        }
+
+        public ItemBuilder(){
+        }
+
+        public ItemBuilder name(String name){
+            Name = name;
+            return this;
+        }
+
+        public ItemBuilder id(int id){
+            Id = id;
+            return this;
+        }
+
+        public ItemBuilder bestPrice(Float bestPrice){
+            BestPrice = bestPrice;
+            return this;
+        }
+
+        public ItemBuilder listActive (Boolean listActive){
+            ListActive = listActive;
+            return this;
+        }
+
+        public ItemBuilder libraryActive (Boolean libraryActive){
+            LibraryActive = libraryActive;
+            return this;
+        }
+
+        public ItemBuilder store (Store store){
+            Store = store;
+            return this;
+        }
+
+        public ItemBuilder fromString(String itemString) throws SQLException, ClassNotFoundException {
+            final String [] partStrings = itemString.split(",");
+            Id = Integer.parseInt(partStrings[0]);
+            Name = partStrings[1];
+            BestPrice = Float.parseFloat(partStrings[2]);
+            ListActive = Boolean.parseBoolean(partStrings[3]);
+            if (partStrings.length >= 6) {
+                Store = new Store.StoreBuilder(partStrings[4], Integer.parseInt(partStrings[5])).build();
+            } else if (partStrings.length >= 5) {
+                Store = new Store.StoreBuilder(partStrings[4]).build();
+            }
+            return this;
+        }
+
+        @Override
+        public ItemBuilder create() {
+            try (final database db = new database()) {
+                if(Store != null) {
+                    Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
                 }
-            } else if(Name != null) {
-                final ResultSet rs = db.selectTableQuery(itemQueries.getItemByName(Name));
+                final ResultSet rs = db.selectTableQuery(itemQueries.addItem(this.build()));
                 while (rs.next()) {
                     Id = rs.getInt("ItemId");
-                    BestPrice = rs.getFloat("BestPrice");
-                    ListActive = rs.getBoolean("ListActive");
-                    LibraryActive = rs.getBoolean("LibraryActive");
-                    Store = new Store(rs.getInt("StoreId"));
-                    Store.read();
+                    ListActive = true;
+                    LibraryActive = true;
                 }
-            }
-        } catch (Exception ex) {
-
-        }
-    }
-
-    @Override
-    public List<Item> readAll() {
-        final List<Item> returnList = new ArrayList<>();
-        try (final database db = new database()) {
-            final ResultSet rs = db.selectTableQuery(itemQueries.getAllItemsFromList());
-            while(rs.next())
-            {
-                returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), new Store(rs.getString("StoreName"), rs.getInt("StoreId")), rs.getFloat("BestPrice")));
-            }
-        } catch (Exception ex) {
-            System.out.println("Fail");
-        }
-        return returnList;
-    }
-
-    @Override
-    public void update(boolean justFlipListActive) {
-        try (final database db = new database()) {
-            if (Name != null) {
-                if(Store != null) {
-                    Store.create();
-                }
-                if(!justFlipListActive) {
-                    if (Id != null && Id != 0) {
-                        db.updateTableQuery(itemQueries.updateItemById(this));
-                    } else {
-                        db.updateTableQuery(itemQueries.updateItemByName(this));
-                    }
+            } catch (Exception ex) {
+                if(Store != null || BestPrice != 0) {
+                    update(false);
                 } else {
-                    if (Id != null && Id != 0) {
-                        db.updateTableQuery(itemQueries.makeActiveById(this));
-                    } else {
-                        db.updateTableQuery(itemQueries.makeActiveByName(this));
+                    update(true);
+                }
+                read();
+            } finally {
+                return this;
+            }
+        }
+
+        @Override
+        public ItemBuilder read() {
+            try (final database db = new database()) {
+                if(Id != null && Id != 0) {
+                    ResultSet rs = db.selectTableQuery(itemQueries.getItemById(Id));
+                    while (rs.next()) {
+                        Name = rs.getString("ItemName");
+                        BestPrice = rs.getFloat("BestPrice");
+                        ListActive = rs.getBoolean("ListActive");
+                        LibraryActive = rs.getBoolean("LibraryActive");
+                        Store.StoreBuilder sb = new Store.StoreBuilder().Id(rs.getInt("StoreId"));
+                        sb.read();
+                        Store = sb.build();
+                    }
+                } else if(Name != null) {
+                    final ResultSet rs = db.selectTableQuery(itemQueries.getItemByName(Name));
+                    while (rs.next()) {
+                        Id = rs.getInt("ItemId");
+                        BestPrice = rs.getFloat("BestPrice");
+                        ListActive = rs.getBoolean("ListActive");
+                        LibraryActive = rs.getBoolean("LibraryActive");
+                        Store.StoreBuilder sb = new Store.StoreBuilder().Id(rs.getInt("StoreId"));
+                        sb.read();
+                        Store = sb.build();
                     }
                 }
-            }
-        } catch (Exception ex) {
-            create();
-        }
-    }
+            } catch (Exception ex) {
 
-    @Override
-    public void delete(boolean deleteFromLibrary) {
-        try (final database db = new database()) {
-            if (Id != null) {
-                if(!deleteFromLibrary) {
-                    db.updateTableQuery(itemQueries.removeItemFromList(Id));
-                } else {
-                    db.updateTableQuery(itemQueries.removeItemFromLibrary(Id));
+            } finally {
+                return this;
+            }
+        }
+
+        @Override
+        public List<ItemBuilder> readAll() {
+            final List<ItemBuilder> returnList = new ArrayList<>();
+            try (final database db = new database()) {
+                final ResultSet rs = db.selectTableQuery(itemQueries.getAllItemsFromList());
+                while(rs.next())
+                {
+                    returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
                 }
+            } catch (Exception ex) {
+                System.out.println("Fail");
+            }finally {
+                return returnList;
             }
-        } catch (Exception ex) {
-
         }
-    }
 
-    public void attachStore(){
-        try (final database db = new database()) {
-            if(Store.getId() != null) {
-                db.updateTableQuery(itemQueries.addStoreToItem(Id, Store.getId()));
+        @Override
+        public ItemBuilder update(boolean justFlipListActive) {
+            try (final database db = new database()) {
+                if (Name != null) {
+                    if(Store != null) {
+                        Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
+                    }
+                    if(!justFlipListActive) {
+                        if (Id != null && Id != 0) {
+                            db.updateTableQuery(itemQueries.updateItemById(this.build()));
+                        } else {
+                            db.updateTableQuery(itemQueries.updateItemByName(this.build()));
+                        }
+                    } else {
+                        if (Id != null && Id != 0) {
+                            db.updateTableQuery(itemQueries.makeActiveById(this.build()));
+                        } else {
+                            db.updateTableQuery(itemQueries.makeActiveByName(this.build()));
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                create();
+            } finally {
+                return this;
             }
-        } catch(Exception ex) {
+        }
 
+        @Override
+        public ItemBuilder delete(boolean deleteFromLibrary) {
+            try (final database db = new database()) {
+                if (Id != null) {
+                    if(!deleteFromLibrary) {
+                        db.updateTableQuery(itemQueries.removeItemFromList(Id));
+                    } else {
+                        db.updateTableQuery(itemQueries.removeItemFromLibrary(Id));
+                    }
+                }
+            } catch (Exception ex) {
+
+            } finally {
+                return this;
+            }
+        }
+
+        public ItemBuilder attachStore(){
+            try (final database db = new database()) {
+                if(Store.getId() != null) {
+                    db.updateTableQuery(itemQueries.addStoreToItem(Id, Store.getId()));
+                }
+            } catch(Exception ex) {
+
+            }
+            return this;
+        }
+
+        public Item build() {
+            return new Item(this);
         }
     }
     //End Constructors

@@ -4,9 +4,9 @@ import java.util.List;
  * Created by Christopher on 10/2/2015.
  */
 public interface CRUD<T> {
-    void create();
-    void read();
+    T create();
+    T read();
     List<T> readAll();
-    void update(boolean justFlipListActive);
-    void delete(boolean deleteFromLibrary);
+    T update(boolean justFlipListActive);
+    T delete(boolean deleteFromLibrary);
 }

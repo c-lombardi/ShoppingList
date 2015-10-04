@@ -38,25 +38,7 @@ public class Item {
 
     private Store Store;
 
-    public Boolean isListActive() throws Exception {
-        return ListActive;
-    }
-
-    public void setListActive(Boolean listActive) throws Exception {
-        ListActive = listActive;
-    }
-
     private Boolean ListActive;
-
-    public Boolean isLibraryActive() throws Exception {
-        return LibraryActive;
-    }
-
-    public void setLibraryActive(Boolean libraryActive) throws Exception {
-        LibraryActive = libraryActive;
-    }
-
-    private Boolean LibraryActive;
 
     public Float getBestPrice() throws Exception {
         return BestPrice;
@@ -68,47 +50,6 @@ public class Item {
 
     private Float BestPrice;
     //End Getters and Setters
-
-    //Constructors
-
-    public Item(int id) {
-        Id = id;
-        ListActive = true;
-        LibraryActive = true;
-    }
-    public Item(String name) {
-        Name = name;
-        ListActive = true;
-        LibraryActive = true;
-    }
-    /*public Item(String name, Float price) {
-        Name = name;
-        BestPrice = price;
-        ListActive = true;
-        LibraryActive = true;
-    }
-    public Item(String name, Store store, Float price) {
-        Name = name;
-        Store = store;
-        BestPrice = price;
-        ListActive = true;
-        LibraryActive = true;
-    }
-    public Item(int Id, String name, Float price) {
-        Name = name;
-        BestPrice = price;
-        ListActive = true;
-        LibraryActive = true;
-    }*/
-    public Item(int id, String name, Store store, Float price) {
-        Id = id;
-        Name = name;
-        Store = store;
-        BestPrice = price;
-        ListActive = true;
-        LibraryActive = true;
-    }
-    //End Constructors
 
     @Override
     public String toString(){
