@@ -42,15 +42,16 @@ public class Server implements Runnable {
                         while (in.ready()) {
                             sb.append(in.readLine());
                         }
-                        String MessageFromClient = sb.toString();
                         //Get the command from the client
-                        final char commandCharFromClient = MessageFromClient.charAt(0);
+                        final char commandCharFromClient = sb.toString().charAt(0);
                         final int valueOfFirstChar = Character.getNumericValue(commandCharFromClient);
                         final ByteCommand command = ByteCommand.values()[valueOfFirstChar];
-                        //Parse String To items and stores
-                        try {
-                            MessageFromClient = MessageFromClient.substring(2); //Remove first command char and semicolon
-                        } catch (Exception ex){}
+                        final String MessageFromClient;
+                        if (sb.toString().length() > 1){
+                            MessageFromClient = sb.toString().substring(2);
+                        } else {
+                            MessageFromClient = sb.toString();
+                        }
                         PrintWriter out = new PrintWriter(socket.getOutputStream());
                         switch (command) {
                             case getItems: {
@@ -62,7 +63,7 @@ public class Server implements Runnable {
                             }
                             case addItem: {
                                 if (!(MessageFromClient.length() < 2)) {
-                                    out.println(new Item.ItemBuilder().fromString(MessageFromClient).fromString(MessageFromClient).create().build().toString());
+                                    out.println(new Item.ItemBuilder().fromString(MessageFromClient).create().build().toString());
                                     out.flush();
                                 }
                                 break;
