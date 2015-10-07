@@ -9,7 +9,7 @@
         app:showAsAction="ifRoom|withText" />
     <item android:id="@+id/action_settings"
         android:title="@string/action_settings"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/sym_wrench"
         android:orderInCategory="100"
         android:onClick="ConfigureIpAddress"
         app:showAsAction="ifRoom|withText"

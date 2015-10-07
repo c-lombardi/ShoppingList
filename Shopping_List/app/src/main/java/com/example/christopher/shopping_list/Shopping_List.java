@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,15 +20,22 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Shopping_List extends AppCompatActivity {
     private static ArrayList<Item> ItemArrayList;
     private static ItemsAdapter adapter;
+    private static HashMap<String, Integer> colorDict;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping__list);
+        colorDict = new HashMap<>();
+        File file = new File(getDir("data", MODE_PRIVATE), "map");
         ItemArrayList = new ArrayList<>();
         adapter = new ItemsAdapter(this, ItemArrayList);
         final ListView listView = (ListView) findViewById(R.id.listView);
@@ -43,14 +51,15 @@ public class Shopping_List extends AppCompatActivity {
                 }
             }
         });
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 final AlertDialog.Builder alert = new AlertDialog.Builder(Shopping_List.this);
-                alert.setTitle("Remove or Edit Item");
+                final View listItemView = getViewByPosition(position, listView);
+                final TextView listItemTextView = (TextView)listItemView.findViewById(R.id.itemName);
+                final String itemName = listItemTextView.getText().toString();
+                alert.setTitle(String.format("Remove or Edit %s", itemName));
                 alert.setMessage("I love you, Alina!");
-                final String itemViewText = listView.getItemAtPosition(position).toString();
-                final String keyword = itemViewText.split(",")[1];
                 alert.setPositiveButton("Edit", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         final AlertDialog.Builder alert = new AlertDialog.Builder(Shopping_List.this);
@@ -64,7 +73,7 @@ public class Shopping_List extends AppCompatActivity {
                         final EditText storeNameView = (EditText) inflatedView.findViewById(R.id.storeName);
                         try {
                             for (Item item : ItemArrayList) {
-                                if (item.getName().equals(keyword)) {
+                                if (item.getName().equals(itemName)) {
                                     itemNameView.setText(item.getName().trim());
                                     bestPriceView.setText(Float.toString(item.getBestPrice()).trim());
                                     if (item.getStore() != null) {
@@ -82,7 +91,7 @@ public class Shopping_List extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int whichButton) {
                                 try {
                                     for (Item item : ItemArrayList) {
-                                        if (item.getName().equals(keyword)) {
+                                        if (item.getName().equals(itemName)) {
                                             String itemName = itemNameView.getText().toString().trim();
                                             if (!itemName.isEmpty()) {
                                                 final Item.ItemBuilder ib = new Item.ItemBuilder(item.getId(), itemName);
@@ -110,14 +119,15 @@ public class Shopping_List extends AppCompatActivity {
                 });
 
                 alert.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
-                   public void onClick(DialogInterface dialog, int whichButton) {}
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
                 });
 
                 alert.setNegativeButton("Remove", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         try {
                             for (Item i : ItemArrayList) {
-                                if (i.getName().equals(keyword)) {
+                                if (i.getName().equals(itemName)) {
                                     ItemArrayList.remove(i);
                                     new Client.ClientBuilder(ByteCommand.removeItemFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), i, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                                     break;
@@ -129,8 +139,43 @@ public class Shopping_List extends AppCompatActivity {
                     }
                 });
                 alert.show();
+                return true;
             }
         });
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                final View listItemView = getViewByPosition(position, listView);
+                final TextView listItemTextView = (TextView)listItemView.findViewById(R.id.itemName);
+                final String itemName = listItemTextView.getText().toString();
+                final Integer color = colorDict.get(itemName);
+                if(color == null){
+                    colorDict.put(itemName, Color.GREEN);
+                    listItemView.setBackgroundColor(Color.GREEN);
+                } else if (color == Color.RED) {
+                    colorDict.put(itemName, Color.TRANSPARENT);
+                    listItemView.setBackgroundColor(Color.TRANSPARENT);
+                } else if (color == Color.GREEN) {
+                    colorDict.put(itemName, Color.RED);
+                    listItemView.setBackgroundColor(Color.RED);
+                } else if (color == Color.TRANSPARENT) {
+                    colorDict.put(itemName, Color.GREEN);
+                    listItemView.setBackgroundColor(Color.GREEN);
+                }
+            }
+        });
+    }
+
+    private View getViewByPosition(int pos, ListView listView) {
+        final int firstListItemPosition = listView.getFirstVisiblePosition();
+        final int lastListItemPosition = firstListItemPosition + listView.getChildCount() - 1;
+
+        if (pos < firstListItemPosition || pos > lastListItemPosition ) {
+            return listView.getAdapter().getView(pos, null, listView);
+        } else {
+            final int childIndex = pos - firstListItemPosition;
+            return listView.getChildAt(childIndex);
+        }
     }
 
     @Override
@@ -302,13 +347,14 @@ public class Shopping_List extends AppCompatActivity {
             // Lookup view for data population
             final TextView tvName = (TextView) convertView.findViewById(R.id.itemName);
             final TextView tvHome = (TextView) convertView.findViewById(R.id.itemStore);
+            final TextView tvPrice = (TextView) convertView.findViewById(R.id.bestPrice);
             // Populate the data into the template view using the data object
             try {
+                tvName.setText(item.getName());
+                tvPrice.setText(String.valueOf("$" + item.getBestPrice()));
                 if(item.getStore() != null) {
-                    tvName.setText(item.getName() + " @ " + item.getBestPrice());
-                    tvHome.setText("From: " + item.getStore().getName());
+                    tvHome.setText(item.getStore().getName());
                 } else {
-                    tvName.setText(item.getName() + " @ " + item.getBestPrice());
                     tvHome.setText("");
                 }
             } catch (Exception e) {
