@@ -5,7 +5,7 @@ import java.sql.SQLException;
 /**
  * Created by Christopher on 9/1/2015.
  */
-public class Item {
+public class Item implements Comparable<Item>{
     private final int Id;
     private final String Name;
     private final Store Store;
@@ -81,6 +81,11 @@ public class Item {
             ib.store(new Store.StoreBuilder(partStrings[4]).build());
         }
         return ib.build();
+    }
+
+    @Override
+    public int compareTo(Item another) {
+        return getName().toLowerCase().compareTo(another.getName().toLowerCase());
     }
 
     public static class ItemBuilder{

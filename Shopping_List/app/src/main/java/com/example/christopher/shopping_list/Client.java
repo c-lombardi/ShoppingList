@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.List;
 
 /**
  * Created by Christopher on 9/10/2015.
@@ -16,6 +17,7 @@ public class Client extends AsyncTask<String, Client, String> {
     private final ByteCommand command;
     private Socket socket;
     private final Item item;
+    private List<Object> itemIds;
     private final ListView listView;
     private final Shopping_List shoppingList;
     private final SwipeRefreshLayout swipeLayout;
@@ -26,9 +28,22 @@ public class Client extends AsyncTask<String, Client, String> {
         listView = clientBuilder.listView;
         swipeLayout = clientBuilder.swipeLayout;
         item = clientBuilder.item;
+        itemIds = clientBuilder.itemIds;
         shoppingList = new Shopping_List();
         command = clientBuilder.command;
         ipAddress = clientBuilder.ipAddress;
+    }
+    private String CreateOutLineOfList(List<Object> objects){
+        final StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < objects.size(); i++) {
+            sb.append(objects.get(i).toString());
+            if(i != objects.size() - 1) {
+                sb.append(";");
+            } else {
+                sb.append("\r\n");
+            }
+        }
+        return sb.toString();
     }
     private String CreateOutLine(Object ... objects){
         final StringBuilder sb = new StringBuilder();
@@ -101,6 +116,25 @@ public class Client extends AsyncTask<String, Client, String> {
                         out.flush();
                         break;
                     }
+                    case getLibrary: {
+                        out.println(CreateOutLine(Integer.toString(ByteCommand.getLibrary.ordinal())));
+                        out.flush();
+                        String line;
+                        while ((line = in.readLine()) != null) {
+                            String[] itemParts = line.split(",");
+                            shoppingList.AddToLibraryItemArrayList(new Item.ItemBuilder(Integer.parseInt(itemParts[0]), itemParts[1]).build());
+                        }
+                        break;
+                    } case reAddItems: {
+                        out.println(CreateOutLine(Integer.toString(ByteCommand.reAddItems.ordinal()), CreateOutLineOfList(itemIds)));
+                        String itemString;
+                        while ((itemString = in.readLine()) != null) {
+                            if (itemString.contains(",")) {
+                                shoppingList.AddToItemArrayList(Item.fromString(itemString));
+                            }
+                        }
+                        break;
+                    }
                 }
                 in.close();
                 out.close();
@@ -125,11 +159,13 @@ public class Client extends AsyncTask<String, Client, String> {
             swipeLayout.setRefreshing(false);
         shoppingList.DisplayToast(str);
         shoppingList.NotifyAdapterThatItemListChanged();
+        shoppingList.NotifyAdapterThatItemLibraryListChanged();
     }
 
     public static class ClientBuilder {
         private final ByteCommand command;
         private Item item;
+        private List<Object> itemIds;
         private final ListView listView;
         private final SwipeRefreshLayout swipeLayout;
         private final String ipAddress;
@@ -139,6 +175,14 @@ public class Client extends AsyncTask<String, Client, String> {
             listView = lv;
             swipeLayout = srl;
             item = i;
+            command = cmd;
+            ipAddress = ip;
+        }
+        public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, List<Object> i, String ip)
+        {
+            listView = lv;
+            swipeLayout = srl;
+            itemIds = i;
             command = cmd;
             ipAddress = ip;
         }

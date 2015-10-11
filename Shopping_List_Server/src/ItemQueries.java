@@ -80,6 +80,36 @@ public class itemQueries {
     }
     public static final String getAllItemsFromLibrary = "SELECT * " +
             "FROM Items " +
-            "WHERE LibraryActive = TRUE";
+            "WHERE LibraryActive = TRUE AND ListActive = FALSE";
+    public static final String reAddItemsByIds(String [] itemIds) {
+        StringBuilder queryStringBuilder = new StringBuilder(String.format("UPDATE Items " +
+                "SET (ListActive) = (%b) WHERE ", true));
+        if(itemIds.length > 0) {
+            for (int i = 0; i < itemIds.length; i++) {
+                if (i < itemIds.length - 1) {
+                    queryStringBuilder.append(String.format("ItemId = %d OR ", Integer.parseInt(itemIds[i])));
+                } else {
+                    queryStringBuilder.append(String.format("ItemId = %d", Integer.parseInt(itemIds[i])));
+                }
+            }
+            return queryStringBuilder.toString();
+        }
+        return null;
+    }
 
+    public static final String getItemsByIds(String [] itemIds) {
+        StringBuilder queryStringBuilder = new StringBuilder(getAllItemsFromList());
+        queryStringBuilder.append(" AND ");
+        if(itemIds.length > 0) {
+            for (int i = 0; i < itemIds.length; i++) {
+                if (i < itemIds.length - 1) {
+                    queryStringBuilder.append(String.format("ItemId = %d OR ", Integer.parseInt(itemIds[i])));
+                } else {
+                    queryStringBuilder.append(String.format("ItemId = %d", Integer.parseInt(itemIds[i])));
+                }
+            }
+            return queryStringBuilder.toString();
+        }
+        return null;
+    }
 }

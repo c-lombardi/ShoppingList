@@ -55,7 +55,7 @@ public class Server implements Runnable {
                         PrintWriter out = new PrintWriter(socket.getOutputStream());
                         switch (command) {
                             case getItems: {
-                                for (final Item.ItemBuilder i : new Item.ItemBuilder().readAll()) {
+                                for (final Item.ItemBuilder i : new Item.ItemBuilder().readAll(false)) {
                                     out.println(i.build().toString());
                                     out.flush();
                                 }
@@ -77,6 +77,20 @@ public class Server implements Runnable {
                             }
                             case removeItemFromList: {
                                 new Item.ItemBuilder().id(Integer.parseInt(MessageFromClient)).delete(false);
+                                break;
+                            }
+                            case getLibrary: {
+                                for (final Item.ItemBuilder i : new Item.ItemBuilder().readAll(true)) {
+                                    out.println(i.build().toString());
+                                    out.flush();
+                                }
+                                break;
+                            }
+                            case reAddItems: {
+                                for(Item.ItemBuilder ib : new Item.ItemBuilder().reAdd(MessageFromClient.split(";"))) {
+                                    out.println(ib.build().toString());
+                                    out.flush();
+                                }
                                 break;
                             }
                         }

@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,26 +18,29 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+
+import static java.util.Collections.*;
 
 public class Shopping_List extends AppCompatActivity {
-    private static ArrayList<Item> ItemArrayList;
+    private static ArrayList<Item> ItemArrayList, itemLibraryArrayList;
     private static ItemsAdapter adapter;
+    private static ItemsLibraryAdapter libraryAdapter;
     private static HashMap<String, Integer> colorDict;
+    private static HashSet<Item> itemLibraryChosenHashSet;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping__list);
         colorDict = new HashMap<>();
-        File file = new File(getDir("data", MODE_PRIVATE), "map");
         ItemArrayList = new ArrayList<>();
         adapter = new ItemsAdapter(this, ItemArrayList);
         final ListView listView = (ListView) findViewById(R.id.listView);
@@ -66,7 +71,7 @@ public class Shopping_List extends AppCompatActivity {
                         alert.setTitle("Edit Item");
                         alert.setMessage("I love you, Alina!");
                         final LayoutInflater createEditItemInflater = Shopping_List.this.getLayoutInflater();
-                        final View inflatedView = createEditItemInflater.inflate(R.layout.create_edit_item_layout, null);
+                        final View inflatedView = createEditItemInflater.inflate(R.layout.edit_item_layout, null);
                         alert.setView(inflatedView);
                         final EditText itemNameView = (EditText) inflatedView.findViewById(R.id.itemName);
                         final EditText bestPriceView = (EditText) inflatedView.findViewById(R.id.bestPrice);
@@ -148,22 +153,40 @@ public class Shopping_List extends AppCompatActivity {
                 final View listItemView = getViewByPosition(position, listView);
                 final TextView listItemTextView = (TextView)listItemView.findViewById(R.id.itemName);
                 final String itemName = listItemTextView.getText().toString();
-                final Integer color = colorDict.get(itemName);
-                if(color == null){
-                    colorDict.put(itemName, Color.GREEN);
-                    listItemView.setBackgroundColor(Color.GREEN);
-                } else if (color == Color.RED) {
-                    colorDict.put(itemName, Color.TRANSPARENT);
-                    listItemView.setBackgroundColor(Color.TRANSPARENT);
-                } else if (color == Color.GREEN) {
-                    colorDict.put(itemName, Color.RED);
-                    listItemView.setBackgroundColor(Color.RED);
-                } else if (color == Color.TRANSPARENT) {
-                    colorDict.put(itemName, Color.GREEN);
-                    listItemView.setBackgroundColor(Color.GREEN);
-                }
+                handleColor(itemName, listItemView);
             }
         });
+    }
+
+    private void changeColorLibrary(Item item, View view) {
+        if(itemLibraryChosenHashSet.contains(item)) {
+            view.setBackgroundColor(Color.parseColor("#ff33b5e5"));
+        } else {
+            view.setBackgroundColor(Color.TRANSPARENT);
+        }
+    }
+
+    private void populateColorDict(String itemName, View view) {
+        if(!colorDict.containsKey(itemName)) {
+            colorDict.put(itemName, Color.TRANSPARENT);
+        } else {
+            view.setBackgroundColor(colorDict.get(itemName));
+        }
+    }
+
+
+    private void handleColor(String itemName, View listItemView) {
+        final Integer color = colorDict.get(itemName);
+        if (color == Color.RED) {
+            colorDict.put(itemName, Color.TRANSPARENT);
+            listItemView.setBackgroundColor(Color.TRANSPARENT);
+        } else if (color == Color.GREEN) {
+            colorDict.put(itemName, Color.RED);
+            listItemView.setBackgroundColor(Color.RED);
+        } else if (color == Color.TRANSPARENT) {
+            colorDict.put(itemName, Color.GREEN);
+            listItemView.setBackgroundColor(Color.GREEN);
+        }
     }
 
     private View getViewByPosition(int pos, ListView listView) {
@@ -223,7 +246,41 @@ public class Shopping_List extends AppCompatActivity {
     }
     public void NotifyAdapterThatItemListChanged(){
         try {
+            sort(ItemArrayList);
             adapter.notifyDataSetChanged();
+        }
+        catch (Exception ex)
+        {
+            System.out.print("fail1");
+        }
+    }
+
+
+    public static void AddToLibraryItemArrayList(final Item newItem)
+    {
+        try {
+            Item foundItem = null;
+            for(Item i : itemLibraryArrayList)
+            {
+                if(i.getId() == newItem.getId()) {
+                    foundItem = i;
+                    break;
+                }
+            }
+            if(foundItem != null) {
+                itemLibraryArrayList.remove(foundItem);
+            }
+            itemLibraryArrayList.add(newItem);
+        }
+        catch (Exception ex)
+        {
+            System.out.print("fail");
+        }
+    }
+    public void NotifyAdapterThatItemLibraryListChanged(){
+        try {
+            sort(itemLibraryArrayList);
+            libraryAdapter.notifyDataSetChanged();
         }
         catch (Exception ex)
         {
@@ -237,27 +294,66 @@ public class Shopping_List extends AppCompatActivity {
         alert.setTitle("Add Item");
         alert.setMessage("I love you, Alina!");
         final LayoutInflater createEditItemInflater = Shopping_List.this.getLayoutInflater();
-        final View inflatedView = createEditItemInflater.inflate(R.layout.create_edit_item_layout, null);
+        final View inflatedView = createEditItemInflater.inflate(R.layout.create_item_layout, null);
         alert.setView(inflatedView);
+        itemLibraryArrayList = new ArrayList<>();
+        itemLibraryChosenHashSet = new HashSet<>();
+        libraryAdapter = new ItemsLibraryAdapter(inflatedView.getContext(), itemLibraryArrayList);
         final EditText itemNameView = (EditText) inflatedView.findViewById(R.id.itemName);
-        final EditText bestPriceView = (EditText) inflatedView.findViewById(R.id.bestPrice);
-        final EditText storeNameView = (EditText) inflatedView.findViewById(R.id.storeName);
+        final ListView itemLibraryListView = (ListView) inflatedView.findViewById(R.id.libraryItemsListView);
+        itemLibraryListView.setAdapter(libraryAdapter);
+        new Client.ClientBuilder(ByteCommand.getLibrary, (ListView) findViewById(R.id.libraryItemsListView), null, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+        itemLibraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView itemNameTextView = (TextView) view.findViewById(R.id.itemName);
+                String chosenItemName = itemNameTextView.getText().toString();
+                Item itemFound = null;
+                for(Item i : itemLibraryChosenHashSet) {
+                    if(i.getName() == chosenItemName) {
+                        view.setBackgroundColor(Color.TRANSPARENT);
+                        itemFound = i;
+                        break;
+                    }
+                }
+                if(itemFound == null) {
+                    for (Item i : itemLibraryArrayList) {
+                        if (i.getName() == chosenItemName) {
+                            itemLibraryChosenHashSet.add(i);
+                            changeColorLibrary(i, view);
+                            itemNameView.setEnabled(false);
+                            itemNameView.setVisibility(View.INVISIBLE);
+                            break;
+                        }
+                    }
+                } else {
+                    itemLibraryChosenHashSet.remove(itemFound);
+                }
+                if(itemLibraryChosenHashSet.size() == 0) {
+                    itemNameView.setEnabled(true);
+                    itemNameView.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+        itemLibraryListView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        itemLibraryListView.setItemsCanFocus(false);
+        NotifyAdapterThatItemLibraryListChanged();
         alert.setPositiveButton("Save", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 try {
-                    final String itemName = itemNameView.getText().toString().trim();
-                    if (!itemName.isEmpty()) {
-                        final Item.ItemBuilder ib = new Item.ItemBuilder(itemName);
-                        final String bestPriceString = bestPriceView.getText().toString().trim();
-                        if (!bestPriceString.isEmpty()) {
-                            ib.bestPrice(Float.parseFloat(bestPriceString));
+                    if(itemLibraryChosenHashSet.size() > 0) {
+                        final List<Object> itemIdLibraryChosenArrayList = new ArrayList<>();
+                        for(Item i : itemLibraryChosenHashSet) {
+                            itemIdLibraryChosenArrayList.add(i.getId());
                         }
-                        final String storeName = storeNameView.getText().toString().trim();
-                        if (!storeName.isEmpty()) {
-                            Store.StoreBuilder sb = new Store.StoreBuilder(storeName);
-                            ib.store(sb.build());
+                        new Client.ClientBuilder(ByteCommand.reAddItems, (ListView) findViewById(R.id.libraryItemsListView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), itemIdLibraryChosenArrayList, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                    }
+                    else {
+                        final String itemName = itemNameView.getText().toString().trim();
+                        if (!itemName.isEmpty()) {
+                            final Item.ItemBuilder ib = new Item.ItemBuilder(itemName);
+                            new Client.ClientBuilder(ByteCommand.addItem, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), ib.build(), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                         }
-                        new Client.ClientBuilder(ByteCommand.addItem, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), ib.build(), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -360,6 +456,34 @@ public class Shopping_List extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            populateColorDict(item.getName(), convertView);
+            // Return the completed view to render on screen
+            return convertView;
+        }
+    }
+
+    public class ItemsLibraryAdapter extends ArrayAdapter<Item> {
+        public ItemsLibraryAdapter(Context context, ArrayList<Item> users) {
+            super(context, 0, users);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            // Get the data item for this position
+            final Item item = getItem(position);
+            // Check if an existing view is being reused, otherwise inflate the view
+            if (convertView == null) {
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_name, parent, false);
+            }
+            // Lookup view for data population
+            final TextView tvName = (TextView) convertView.findViewById(R.id.itemName);
+            // Populate the data into the template view using the data object
+            try {
+                tvName.setText(item.getName());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            changeColorLibrary(item, convertView);
             // Return the completed view to render on screen
             return convertView;
         }

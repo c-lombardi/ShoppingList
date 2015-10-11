@@ -6,7 +6,7 @@ import java.util.List;
 public interface CRUD<T> {
     T create();
     T read();
-    List<T> readAll();
+    List<T> readAll(boolean fromLibrary);
     T update(boolean justFlipListActive);
     T delete(boolean deleteFromLibrary);
 }

@@ -166,13 +166,19 @@ public class Item {
         }
 
         @Override
-        public List<ItemBuilder> readAll() {
+        public List<ItemBuilder> readAll(boolean fromLibrary) {
             final List<ItemBuilder> returnList = new ArrayList<>();
             try (final database db = new database()) {
-                final ResultSet rs = db.selectTableQuery(itemQueries.getAllItemsFromList());
-                while(rs.next())
-                {
-                    returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
+                if(!fromLibrary) {
+                    final ResultSet rs = db.selectTableQuery(itemQueries.getAllItemsFromList());
+                    while (rs.next()) {
+                        returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
+                    }
+                } else {
+                    final ResultSet rs = db.selectTableQuery(itemQueries.getAllItemsFromLibrary);
+                    while (rs.next()) {
+                        returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")));
+                    }
                 }
             } catch (Exception ex) {
                 System.out.println("Fail");
@@ -235,6 +241,24 @@ public class Item {
 
             }
             return this;
+        }
+
+        public List<ItemBuilder> reAdd(String [] itemIds) {
+            final List<ItemBuilder> returnList = new ArrayList<>();
+            try (final database db = new database()) {
+                if(itemIds.length != 0) {
+                    db.updateTableQuery(itemQueries.reAddItemsByIds(itemIds));
+                    final ResultSet rs = db.selectTableQuery(itemQueries.getItemsByIds(itemIds));
+                    while (rs.next()) {
+                        returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
+                    }
+                }
+            } catch (Exception ex) {
+
+            }
+            finally {
+                return returnList;
+            }
         }
 
         public Item build() {

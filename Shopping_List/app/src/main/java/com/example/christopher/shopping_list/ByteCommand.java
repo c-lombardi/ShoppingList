@@ -8,4 +8,6 @@ public enum ByteCommand {
     addItem,
     updateItem,
     removeItemFromList,
+    getLibrary,
+    reAddItems
 }
