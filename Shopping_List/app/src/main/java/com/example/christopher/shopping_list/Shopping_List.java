@@ -47,6 +47,7 @@ public class Shopping_List extends AppCompatActivity {
         itemArrayList = new ArrayList<>();
         adapter = new ItemsAdapter(this, itemArrayList);
         final ListView listView = (ListView) findViewById(R.id.listView);
+        listView.setEmptyView(findViewById(R.id.empty));
         listView.setAdapter(adapter);
         final SwipeRefreshLayout swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
         swipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -137,7 +138,7 @@ public class Shopping_List extends AppCompatActivity {
                         try {
                             for (Item i : itemArrayList) {
                                 if (i.getName().equals(itemName)) {
-                                    new Client.ClientBuilder(ByteCommand.removeItemFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), i, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                                    new Client.ClientBuilder(ByteCommand.removeItemFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), i, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).deleteButton((Button) findViewById(R.id.DeleteBoughtItems)).build().execute();
                                     break;
                                 }
                             }
@@ -349,6 +350,7 @@ public class Shopping_List extends AppCompatActivity {
         final EditText itemNameView = (EditText) inflatedView.findViewById(R.id.itemName);
         final ListView itemLibraryListView = (ListView) inflatedView.findViewById(R.id.libraryItemsListView);
         itemLibraryListView.setAdapter(libraryAdapter);
+        itemLibraryListView.setEmptyView(findViewById(R.id.empty));
         new Client.ClientBuilder(ByteCommand.getLibrary, (ListView) findViewById(R.id.libraryItemsListView), null, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
         itemLibraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -393,7 +395,7 @@ public class Shopping_List extends AppCompatActivity {
                         for(Item i : itemLibraryChosenHashSet) {
                             itemIdLibraryChosenArrayList.add(i.getId());
                         }
-                        new Client.ClientBuilder(ByteCommand.reAddItems, (ListView) findViewById(R.id.libraryItemsListView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), itemIdLibraryChosenArrayList, (Button) findViewById(R.id.DeleteBoughtItems), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                        new Client.ClientBuilder(ByteCommand.reAddItems, (ListView) findViewById(R.id.libraryItemsListView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), itemIdLibraryChosenArrayList, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).deleteButton((Button) findViewById(R.id.DeleteBoughtItems)).build().execute();
                     }
                     else {
                         final String itemName = itemNameView.getText().toString().trim();
@@ -566,7 +568,7 @@ public class Shopping_List extends AppCompatActivity {
             for (Item i : foundItems) {
                 foundItemIds.add(i.getId());
             }
-            new Client.ClientBuilder(ByteCommand.removeItemsFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), foundItemIds, (Button) findViewById(R.id.DeleteBoughtItems), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+            new Client.ClientBuilder(ByteCommand.removeItemsFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), foundItemIds, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).deleteButton((Button) findViewById(R.id.DeleteBoughtItems)).build().execute();
         }
     }
 

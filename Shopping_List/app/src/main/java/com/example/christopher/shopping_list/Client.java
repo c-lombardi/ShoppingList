@@ -190,14 +190,13 @@ public class Client extends AsyncTask<String, Client, String> {
             command = cmd;
             ipAddress = ip;
         }
-        public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, List<Object> i, Button delButton, String ip)
+        public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, List<Object> i, String ip)
         {
             listView = lv;
             swipeLayout = srl;
             itemIds = i;
             command = cmd;
             ipAddress = ip;
-            deleteItemsButton = delButton;
         }
         public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, String ip)
         {
@@ -205,6 +204,11 @@ public class Client extends AsyncTask<String, Client, String> {
             swipeLayout = srl;
             command = cmd;
             ipAddress = ip;
+        }
+
+        public ClientBuilder deleteButton(Button delButton){
+            deleteItemsButton = delButton;
+            return this;
         }
 
         public Client build() {

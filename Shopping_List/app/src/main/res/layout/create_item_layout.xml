@@ -14,4 +14,12 @@
         android:layout_height="410dp"
         android:id="@+id/libraryItemsListView"
         android:layout_gravity="center_horizontal" />
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/empty"
+        android:focusable="false"
+        android:gravity="center_horizontal|center_vertical"
+        android:text="@string/no_items">
+    </TextView>
 </LinearLayout>
