@@ -350,7 +350,7 @@ public class Shopping_List extends AppCompatActivity {
         final EditText itemNameView = (EditText) inflatedView.findViewById(R.id.itemName);
         final ListView itemLibraryListView = (ListView) inflatedView.findViewById(R.id.libraryItemsListView);
         itemLibraryListView.setAdapter(libraryAdapter);
-        itemLibraryListView.setEmptyView(findViewById(R.id.empty));
+        itemLibraryListView.setEmptyView(inflatedView.findViewById(R.id.createEmpty));
         new Client.ClientBuilder(ByteCommand.getLibrary, (ListView) findViewById(R.id.libraryItemsListView), null, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
         itemLibraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

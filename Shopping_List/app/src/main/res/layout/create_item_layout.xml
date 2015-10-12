@@ -8,16 +8,15 @@
         android:id="@+id/itemName"
         android:layout_gravity="center_horizontal"
         android:hint="Item Name" />
-
     <ListView
         android:layout_width="match_parent"
-        android:layout_height="410dp"
+        android:layout_height="420dp"
         android:id="@+id/libraryItemsListView"
         android:layout_gravity="center_horizontal" />
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/empty"
+        android:id="@+id/createEmpty"
         android:focusable="false"
         android:gravity="center_horizontal|center_vertical"
         android:text="@string/no_items">
