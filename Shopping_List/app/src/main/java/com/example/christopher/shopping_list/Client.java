@@ -2,6 +2,7 @@ package com.example.christopher.shopping_list;
 
 import android.os.AsyncTask;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.widget.Button;
 import android.widget.ListView;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -22,6 +23,7 @@ public class Client extends AsyncTask<String, Client, String> {
     private final Shopping_List shoppingList;
     private final SwipeRefreshLayout swipeLayout;
     private final String ipAddress;
+    private final Button deleteItemsButton;
 
     private Client(ClientBuilder clientBuilder)
     {
@@ -32,6 +34,7 @@ public class Client extends AsyncTask<String, Client, String> {
         shoppingList = new Shopping_List();
         command = clientBuilder.command;
         ipAddress = clientBuilder.ipAddress;
+        deleteItemsButton = clientBuilder.deleteItemsButton;
     }
     private String CreateOutLineOfList(List<Object> objects){
         final StringBuilder sb = new StringBuilder();
@@ -78,7 +81,7 @@ public class Client extends AsyncTask<String, Client, String> {
                 final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 switch (command) {
                     case getItems: {
-                        out.println(CreateOutLine(Integer.toString(ByteCommand.getItems.ordinal())));
+                        out.println(CreateOutLine(Integer.toString(command.ordinal())));
                         out.flush();
                         shoppingList.ClearItemArrayList();
                         String itemString;
@@ -91,7 +94,7 @@ public class Client extends AsyncTask<String, Client, String> {
                     }
                     case addItem: {
                         try {
-                            out.println(CreateOutLine(Integer.toString(ByteCommand.addItem.ordinal()), item));
+                            out.println(CreateOutLine(Integer.toString(command.ordinal()), item));
                             out.flush();
                             String line;
                             while ((line = in.readLine()) != null) {
@@ -103,7 +106,7 @@ public class Client extends AsyncTask<String, Client, String> {
                         break;
                     }
                     case updateItem: {
-                        out.println(CreateOutLine(Integer.toString(ByteCommand.updateItem.ordinal()), item));
+                        out.println(CreateOutLine(Integer.toString(command.ordinal()), item));
                         out.flush();
                         String line;
                         while ((line = in.readLine()) != null) {
@@ -112,12 +115,13 @@ public class Client extends AsyncTask<String, Client, String> {
                         break;
                     }
                     case removeItemFromList: {
-                        out.println(CreateOutLine(Integer.toString(ByteCommand.removeItemFromList.ordinal()), item.getId()));
+                        out.println(CreateOutLine(Integer.toString(command.ordinal()), item.getId()));
                         out.flush();
+                        shoppingList.removeItemFromItemArrayList(item);
                         break;
                     }
                     case getLibrary: {
-                        out.println(CreateOutLine(Integer.toString(ByteCommand.getLibrary.ordinal())));
+                        out.println(CreateOutLine(Integer.toString(command.ordinal())));
                         out.flush();
                         String line;
                         while ((line = in.readLine()) != null) {
@@ -126,13 +130,19 @@ public class Client extends AsyncTask<String, Client, String> {
                         }
                         break;
                     } case reAddItems: {
-                        out.println(CreateOutLine(Integer.toString(ByteCommand.reAddItems.ordinal()), CreateOutLineOfList(itemIds)));
+                        out.println(CreateOutLine(Integer.toString(command.ordinal()), CreateOutLineOfList(itemIds)));
+                        out.flush();
                         String itemString;
                         while ((itemString = in.readLine()) != null) {
                             if (itemString.contains(",")) {
                                 shoppingList.AddToItemArrayList(Item.fromString(itemString));
                             }
                         }
+                        break;
+                    } case removeItemsFromList: {
+                        out.println(CreateOutLine(Integer.toString(command.ordinal()), CreateOutLineOfList(itemIds)));
+                        out.flush();
+                        shoppingList.removeItemsFromItemArrayList(itemIds);
                         break;
                     }
                 }
@@ -160,6 +170,7 @@ public class Client extends AsyncTask<String, Client, String> {
         shoppingList.DisplayToast(str);
         shoppingList.NotifyAdapterThatItemListChanged();
         shoppingList.NotifyAdapterThatItemLibraryListChanged();
+        shoppingList.handleDeleteBoughtItemsButton(deleteItemsButton, swipeLayout);
     }
 
     public static class ClientBuilder {
@@ -169,6 +180,7 @@ public class Client extends AsyncTask<String, Client, String> {
         private final ListView listView;
         private final SwipeRefreshLayout swipeLayout;
         private final String ipAddress;
+        private Button deleteItemsButton;
 
         public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, Item i, String ip)
         {
@@ -178,13 +190,14 @@ public class Client extends AsyncTask<String, Client, String> {
             command = cmd;
             ipAddress = ip;
         }
-        public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, List<Object> i, String ip)
+        public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, List<Object> i, Button delButton, String ip)
         {
             listView = lv;
             swipeLayout = srl;
             itemIds = i;
             command = cmd;
             ipAddress = ip;
+            deleteItemsButton = delButton;
         }
         public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, String ip)
         {

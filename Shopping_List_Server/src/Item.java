@@ -121,11 +121,7 @@ public class Item {
                     LibraryActive = true;
                 }
             } catch (Exception ex) {
-                if(Store != null || BestPrice != 0) {
-                    update(false);
-                } else {
-                    update(true);
-                }
+                update(true);
                 read();
             } finally {
                 return this;
@@ -258,6 +254,16 @@ public class Item {
             }
             finally {
                 return returnList;
+            }
+        }
+
+        public void removeItems(String [] itemIds) {
+            try (final database db = new database()) {
+                if(itemIds.length != 0) {
+                    db.updateTableQuery(itemQueries.removeItemsByIds(itemIds));
+                }
+            } catch (Exception ex) {
+
             }
         }
 

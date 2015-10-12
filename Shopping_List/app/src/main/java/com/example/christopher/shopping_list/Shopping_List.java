@@ -8,8 +8,6 @@ import android.graphics.Color;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,32 +15,37 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.*;
 
 public class Shopping_List extends AppCompatActivity {
-    private static ArrayList<Item> ItemArrayList, itemLibraryArrayList;
+    private static ArrayList<Item> itemArrayList, itemLibraryArrayList;
     private static ItemsAdapter adapter;
     private static ItemsLibraryAdapter libraryAdapter;
     private static HashMap<String, Integer> colorDict;
     private static HashSet<Item> itemLibraryChosenHashSet;
+    private static MenuItem itemTotalMenuItem;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping__list);
         colorDict = new HashMap<>();
-        ItemArrayList = new ArrayList<>();
-        adapter = new ItemsAdapter(this, ItemArrayList);
+        itemArrayList = new ArrayList<>();
+        adapter = new ItemsAdapter(this, itemArrayList);
         final ListView listView = (ListView) findViewById(R.id.listView);
         listView.setAdapter(adapter);
         final SwipeRefreshLayout swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
@@ -77,7 +80,7 @@ public class Shopping_List extends AppCompatActivity {
                         final EditText bestPriceView = (EditText) inflatedView.findViewById(R.id.bestPrice);
                         final EditText storeNameView = (EditText) inflatedView.findViewById(R.id.storeName);
                         try {
-                            for (Item item : ItemArrayList) {
+                            for (Item item : itemArrayList) {
                                 if (item.getName().equals(itemName)) {
                                     itemNameView.setText(item.getName().trim());
                                     bestPriceView.setText(Float.toString(item.getBestPrice()).trim());
@@ -95,7 +98,7 @@ public class Shopping_List extends AppCompatActivity {
                         alert.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int whichButton) {
                                 try {
-                                    for (Item item : ItemArrayList) {
+                                    for (Item item : itemArrayList) {
                                         if (item.getName().equals(itemName)) {
                                             String itemName = itemNameView.getText().toString().trim();
                                             if (!itemName.isEmpty()) {
@@ -110,6 +113,7 @@ public class Shopping_List extends AppCompatActivity {
                                                     ib.store(sb.build());
                                                 }
                                                 new Client.ClientBuilder(ByteCommand.updateItem, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), ib.build(), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                                                updateItemTotalTitle();
                                             }
                                             break;
                                         }
@@ -131,9 +135,8 @@ public class Shopping_List extends AppCompatActivity {
                 alert.setNegativeButton("Remove", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         try {
-                            for (Item i : ItemArrayList) {
+                            for (Item i : itemArrayList) {
                                 if (i.getName().equals(itemName)) {
-                                    ItemArrayList.remove(i);
                                     new Client.ClientBuilder(ByteCommand.removeItemFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), i, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                                     break;
                                 }
@@ -151,12 +154,15 @@ public class Shopping_List extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final View listItemView = getViewByPosition(position, listView);
-                final TextView listItemTextView = (TextView)listItemView.findViewById(R.id.itemName);
+                final TextView listItemTextView = (TextView) listItemView.findViewById(R.id.itemName);
                 final String itemName = listItemTextView.getText().toString();
                 handleColor(itemName, listItemView);
+                handleDeleteBoughtItemsButton((Button) findViewById(R.id.DeleteBoughtItems), (SwipeRefreshLayout) findViewById(R.id.swipe_container));
+                updateItemTotalTitle();
             }
         });
     }
+
 
     private void changeColorLibrary(Item item, View view) {
         if(itemLibraryChosenHashSet.contains(item)) {
@@ -174,6 +180,21 @@ public class Shopping_List extends AppCompatActivity {
         }
     }
 
+    public void handleDeleteBoughtItemsButton (Button delButton, SwipeRefreshLayout swipeLayout) {
+        try {
+            final Button deleteButton = delButton;
+            final SwipeRefreshLayout swipeContainer = swipeLayout;
+            if(colorDict.containsValue(Color.GREEN)) {
+                deleteButton.setVisibility(View.VISIBLE);
+                deleteButton.setEnabled(true);
+                swipeContainer.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (420 * (getResources().getDisplayMetrics().densityDpi / 160))));
+            } else {
+                deleteButton.setVisibility(View.INVISIBLE);
+                deleteButton.setEnabled(false);
+                swipeContainer.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            }
+        } catch (Exception ex) {}
+    }
 
     private void handleColor(String itemName, View listItemView) {
         final Integer color = colorDict.get(itemName);
@@ -187,6 +208,20 @@ public class Shopping_List extends AppCompatActivity {
             colorDict.put(itemName, Color.GREEN);
             listItemView.setBackgroundColor(Color.GREEN);
         }
+    }
+
+    private void updateItemTotalTitle () {
+            float totalVal = 0;
+            for (Item i : itemArrayList) {
+                try {
+                if (colorDict.get(i.getName()) == Color.GREEN) {
+                    totalVal += i.getBestPrice();
+                }} catch (Exception ex) {
+                    System.out.println("failed");
+                }
+            }
+            itemTotalMenuItem.setTitle(String.valueOf(round(totalVal, 2)));
+
     }
 
     private View getViewByPosition(int pos, ListView listView) {
@@ -215,7 +250,7 @@ public class Shopping_List extends AppCompatActivity {
 
     public static void ClearItemArrayList(){
         try {
-            ItemArrayList.clear();
+            itemArrayList.clear();
         }
         catch (Exception ex)
         {
@@ -227,7 +262,7 @@ public class Shopping_List extends AppCompatActivity {
     {
         try {
             Item foundItem = null;
-            for(Item i : ItemArrayList)
+            for(Item i : itemArrayList)
             {
                 if(i.getId() == newItem.getId()) {
                     foundItem = i;
@@ -235,9 +270,9 @@ public class Shopping_List extends AppCompatActivity {
                 }
             }
             if(foundItem != null) {
-                ItemArrayList.remove(foundItem);
+                itemArrayList.remove(foundItem);
             }
-            ItemArrayList.add(newItem);
+            itemArrayList.add(newItem);
         }
         catch (Exception ex)
         {
@@ -246,8 +281,9 @@ public class Shopping_List extends AppCompatActivity {
     }
     public void NotifyAdapterThatItemListChanged(){
         try {
-            sort(ItemArrayList);
+            sort(itemArrayList);
             adapter.notifyDataSetChanged();
+            updateItemTotalTitle();
         }
         catch (Exception ex)
         {
@@ -255,6 +291,17 @@ public class Shopping_List extends AppCompatActivity {
         }
     }
 
+    public static void removeItemFromItemArrayList(final Item oldItem)
+    {
+        try {
+            itemArrayList.remove(oldItem);
+            colorDict.remove(oldItem.getName());
+        }
+        catch (Exception ex)
+        {
+            System.out.print("fail");
+        }
+    }
 
     public static void AddToLibraryItemArrayList(final Item newItem)
     {
@@ -277,7 +324,7 @@ public class Shopping_List extends AppCompatActivity {
             System.out.print("fail");
         }
     }
-    public void NotifyAdapterThatItemLibraryListChanged(){
+    public void NotifyAdapterThatItemLibraryListChanged() {
         try {
             sort(itemLibraryArrayList);
             libraryAdapter.notifyDataSetChanged();
@@ -309,14 +356,14 @@ public class Shopping_List extends AppCompatActivity {
                 TextView itemNameTextView = (TextView) view.findViewById(R.id.itemName);
                 String chosenItemName = itemNameTextView.getText().toString();
                 Item itemFound = null;
-                for(Item i : itemLibraryChosenHashSet) {
-                    if(i.getName() == chosenItemName) {
+                for (Item i : itemLibraryChosenHashSet) {
+                    if (i.getName() == chosenItemName) {
                         view.setBackgroundColor(Color.TRANSPARENT);
                         itemFound = i;
                         break;
                     }
                 }
-                if(itemFound == null) {
+                if (itemFound == null) {
                     for (Item i : itemLibraryArrayList) {
                         if (i.getName() == chosenItemName) {
                             itemLibraryChosenHashSet.add(i);
@@ -329,7 +376,7 @@ public class Shopping_List extends AppCompatActivity {
                 } else {
                     itemLibraryChosenHashSet.remove(itemFound);
                 }
-                if(itemLibraryChosenHashSet.size() == 0) {
+                if (itemLibraryChosenHashSet.size() == 0) {
                     itemNameView.setEnabled(true);
                     itemNameView.setVisibility(View.VISIBLE);
                 }
@@ -346,7 +393,7 @@ public class Shopping_List extends AppCompatActivity {
                         for(Item i : itemLibraryChosenHashSet) {
                             itemIdLibraryChosenArrayList.add(i.getId());
                         }
-                        new Client.ClientBuilder(ByteCommand.reAddItems, (ListView) findViewById(R.id.libraryItemsListView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), itemIdLibraryChosenArrayList, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                        new Client.ClientBuilder(ByteCommand.reAddItems, (ListView) findViewById(R.id.libraryItemsListView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), itemIdLibraryChosenArrayList, (Button) findViewById(R.id.DeleteBoughtItems), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                     }
                     else {
                         final String itemName = itemNameView.getText().toString().trim();
@@ -399,6 +446,7 @@ public class Shopping_List extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_shopping__list, menu);
+        itemTotalMenuItem = menu.findItem(R.id.itemTotals);
         return true;
     }
 
@@ -425,6 +473,17 @@ public class Shopping_List extends AppCompatActivity {
             final Toast toast = Toast.makeText(Shopping_List.this.getApplicationContext(), str, Toast.LENGTH_SHORT);
             toast.show();
         } catch (Exception ex) {}
+    }
+
+    public void removeItemsFromItemArrayList(List<Object> itemIds) {
+        final HashSet<Item> itemHashSet = new HashSet<>(itemArrayList);
+        final Iterator it = itemHashSet.iterator();
+        while(it.hasNext()){
+            final Item nextItem = ((Item)it.next());
+            if(itemIds.contains(nextItem.getId())) {
+                removeItemFromItemArrayList(nextItem);
+            }
+        }
     }
 
     public class ItemsAdapter extends ArrayAdapter<Item> {
@@ -487,5 +546,31 @@ public class Shopping_List extends AppCompatActivity {
             // Return the completed view to render on screen
             return convertView;
         }
+    }
+
+    public void DeleteBoughtItems(View buttonView) {
+        Iterator it = colorDict.entrySet().iterator();
+        final List<Item> foundItems = new ArrayList<>();
+        while (it.hasNext()){
+            Map.Entry itemNameAndColor = (Map.Entry)it.next();
+            if(Integer.parseInt(itemNameAndColor.getValue().toString()) == Color.GREEN) {
+                final String name = itemNameAndColor.getKey().toString().trim();
+                final Item localItem = new Item.ItemBuilder(name).build();
+                final int indexOf = itemArrayList.indexOf(localItem);
+                final Item foundItem = itemArrayList.get(indexOf);
+                foundItems.add(foundItem);
+            }
+        }
+        final List<Object> foundItemIds = new ArrayList<>();
+            if(foundItems.size() > 0) {
+            for (Item i : foundItems) {
+                foundItemIds.add(i.getId());
+            }
+            new Client.ClientBuilder(ByteCommand.removeItemsFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), foundItemIds, (Button) findViewById(R.id.DeleteBoughtItems), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+        }
+    }
+
+    public static float round(float d, int decimalPlace) {
+        return BigDecimal.valueOf(d).setScale(decimalPlace,BigDecimal.ROUND_HALF_UP).floatValue();
     }
 }

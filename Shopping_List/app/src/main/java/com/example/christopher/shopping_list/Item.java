@@ -40,14 +40,15 @@ public class Item implements Comparable<Item>{
 
     @Override
     public boolean equals(Object in) {
+        boolean returnVal = false;
         if(in instanceof Item){
             if(Id != 0 && ((Item)in).getId() != 0) {
-                return Id == ((Item) in).getId();
+                returnVal = (Id == ((Item) in).getId());
             } else if (Name != null && ((Item) in).getName() != null){
-                return Name == ((Item)in).getName();
+                returnVal = Name.equals(((Item) in).getName().trim());
             }
         }
-        return false;
+        return returnVal;
     }
 
     @Override

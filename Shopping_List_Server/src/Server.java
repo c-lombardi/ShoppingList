@@ -92,6 +92,9 @@ public class Server implements Runnable {
                                     out.flush();
                                 }
                                 break;
+                            } case removeItemsFromList: {
+                                new Item.ItemBuilder().removeItems(MessageFromClient.split(";"));
+                                break;
                             }
                         }
                     }
