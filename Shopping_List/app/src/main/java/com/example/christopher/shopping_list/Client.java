@@ -164,22 +164,20 @@ public class Client extends AsyncTask<String, Client, String> {
         private List<Object> itemIds;
         private final String ipAddress;
 
-        public ClientBuilder(ByteCommand cmd, Item i, String ip)
-        {
-            item = i;
-            command = cmd;
-            ipAddress = ip;
-        }
-        public ClientBuilder(ByteCommand cmd, List<Object> i, String ip)
-        {
-            itemIds = i;
-            command = cmd;
-            ipAddress = ip;
-        }
         public ClientBuilder(ByteCommand cmd, String ip)
         {
             command = cmd;
             ipAddress = ip;
+        }
+
+        public ClientBuilder ItemIds (List<Object> i) {
+            itemIds = i;
+            return this;
+        }
+
+        public ClientBuilder Item (Item i) {
+            item = i;
+            return this;
         }
 
         public Client build() {

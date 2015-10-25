@@ -114,7 +114,7 @@ public class Shopping_List extends AppCompatActivity {
                                                     final Store.StoreBuilder sb = new Store.StoreBuilder(storeName);
                                                     ib.store(sb.build());
                                                 }
-                                                new Client.ClientBuilder(ByteCommand.updateItem, ib.build(), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                                                new Client.ClientBuilder(ByteCommand.updateItem, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).Item(ib.build()).build().execute();
                                                 updateItemTotalTitle();
                                             }
                                             break;
@@ -139,7 +139,7 @@ public class Shopping_List extends AppCompatActivity {
                         try {
                             for (Item i : itemArrayList) {
                                 if (i.getName().equals(itemName)) {
-                                    new Client.ClientBuilder(ByteCommand.removeItemFromList, i, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                                    new Client.ClientBuilder(ByteCommand.removeItemFromList, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).Item(i).build().execute();
                                     break;
                                 }
                             }
@@ -184,21 +184,20 @@ public class Shopping_List extends AppCompatActivity {
     private void populateColorDict(Item item, View view) {
         if(!colorDict.containsKey(item.getName())) {
             colorDict.put(item.getName(), Color.TRANSPARENT);
+            view.setBackgroundColor(Color.TRANSPARENT);
         } else {
             view.setBackgroundColor(colorDict.get(item.getName()));
         }
     }
 
     public void handleDeleteGreenItemsButton () {
-        try {
-            if(colorDict.containsValue(Color.GREEN)) {
-                deleteItemsMenuItem.setVisible(true);
-                deleteItemsMenuItem.setEnabled(true);
-            } else {
-                deleteItemsMenuItem.setVisible(false);
-                deleteItemsMenuItem.setEnabled(false);
-            }
-        } catch (Exception ex) {}
+        if(colorDict.containsValue(Color.GREEN)) {
+            deleteItemsMenuItem.setVisible(true);
+            deleteItemsMenuItem.setEnabled(true);
+        } else {
+            deleteItemsMenuItem.setVisible(false);
+            deleteItemsMenuItem.setEnabled(false);
+        }
     }
 
     private void handleColor(String itemName, View listItemView) {
@@ -398,13 +397,13 @@ public class Shopping_List extends AppCompatActivity {
                         for(Item i : itemLibraryChosenHashSet) {
                             itemIdLibraryChosenArrayList.add(i.getId());
                         }
-                        new Client.ClientBuilder(ByteCommand.reAddItems, itemIdLibraryChosenArrayList, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                        new Client.ClientBuilder(ByteCommand.reAddItems, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).ItemIds(itemIdLibraryChosenArrayList).build().execute();
                     }
                     else {
                         final String itemName = itemNameView.getText().toString().trim();
                         if (!itemName.isEmpty()) {
                             final Item.ItemBuilder ib = new Item.ItemBuilder(itemName);
-                            new Client.ClientBuilder(ByteCommand.addItem, ib.build(), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                            new Client.ClientBuilder(ByteCommand.addItem, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).Item(ib.build()).build().execute();
                         }
                     }
                 } catch (Exception e) {
@@ -571,7 +570,7 @@ public class Shopping_List extends AppCompatActivity {
             for (Item i : foundItems) {
                 foundItemIds.add(i.getId());
             }
-            new Client.ClientBuilder(ByteCommand.removeItemsFromList, foundItemIds, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+            new Client.ClientBuilder(ByteCommand.removeItemsFromList, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).ItemIds(foundItemIds).build().execute();
         }
     }
 
