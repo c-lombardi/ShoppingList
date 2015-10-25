@@ -9,12 +9,12 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -441,11 +441,10 @@ public class Shopping_List extends AppCompatActivity {
     public void AddNewItem(MenuItem view)
     {
         final AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle("Add Item");
-        alert.setMessage("I love you, Alina!");
         final LayoutInflater createEditItemInflater = Shopping_List.this.getLayoutInflater();
         final View inflatedView = createEditItemInflater.inflate(R.layout.create_item_layout, null);
         alert.setView(inflatedView);
+        final TextView libraryItemChosenHashSetCount = (TextView)inflatedView.findViewById(R.id.selectedItemsCount);
         itemLibraryArrayList = new ArrayList<>();
         itemLibraryChosenHashSet = new HashSet<>();
         libraryAdapter = new ItemsLibraryAdapter(inflatedView.getContext(), itemLibraryArrayList);
@@ -477,16 +476,8 @@ public class Shopping_List extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 TextView itemNameTextView = (TextView) view.findViewById(R.id.itemName);
                 String chosenItemName = itemNameTextView.getText().toString();
-                Item foundItem = new Item.ItemBuilder(chosenItemName).build();
-                boolean isItemFound = false;
-                for(Item i : itemLibraryChosenHashSet)
-                {
-                    if(i.equals(foundItem)){
-                        foundItem = i;
-                        isItemFound = true;
-                    }
-                }
-                if(isItemFound){
+                Item foundItem = new Item.ItemBuilder(Integer.parseInt(view.getTag().toString()), chosenItemName).build();
+                if(itemLibraryChosenHashSet.contains(foundItem)){
                     view.setBackgroundColor(Color.TRANSPARENT);
                     itemLibraryChosenHashSet.remove(foundItem);
                 } else {
@@ -494,7 +485,7 @@ public class Shopping_List extends AppCompatActivity {
                     itemLibraryChosenHashSet.add(i);
                     changeColorLibrary(i, view);
                 }
-
+                libraryItemChosenHashSetCount.setText(String.valueOf(itemLibraryChosenHashSet.size()));
                 if (itemLibraryChosenHashSet.size() == 0) {
                     itemNameView.setHint(R.string.add_item);
                 } else {
@@ -532,7 +523,7 @@ public class Shopping_List extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int whichButton) {
             }
         });
-        alert.show();
+        alert.show().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
     }
 
     private class ItemsLibraryAdapter extends ArrayAdapter<Item> {
@@ -557,6 +548,7 @@ public class Shopping_List extends AppCompatActivity {
                 e.printStackTrace();
             }
             changeColorLibrary(item, convertView);
+            convertView.setTag(item.getId());
             // Return the completed view to render on screen
             return convertView;
         }

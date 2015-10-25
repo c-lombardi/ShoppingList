@@ -63,7 +63,14 @@ public class database implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        if(!db.isClosed())
-            db.close();
+        while(!db.isClosed()){
+            try {
+                db.close();
+            } catch (Exception ex) {
+                db.close();
+                System.out.println("Db failed to close");
+                System.out.println(ex);
+            }
+        }
     }
 }
