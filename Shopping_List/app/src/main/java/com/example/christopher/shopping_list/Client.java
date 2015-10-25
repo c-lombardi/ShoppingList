@@ -18,6 +18,7 @@ public class Client extends AsyncTask<String, Client, String> {
     private List<Object> itemIds;
     private final Shopping_List shoppingList;
     private final String ipAddress;
+    private final String searchString;
 
     private Client(ClientBuilder clientBuilder)
     {
@@ -26,6 +27,7 @@ public class Client extends AsyncTask<String, Client, String> {
         shoppingList = new Shopping_List();
         command = clientBuilder.command;
         ipAddress = clientBuilder.ipAddress;
+        searchString = clientBuilder.searchString;
     }
     private String CreateOutLineOfList(List<Object> objects){
         final StringBuilder sb = new StringBuilder();
@@ -117,7 +119,8 @@ public class Client extends AsyncTask<String, Client, String> {
                             shoppingList.AddToLibraryItemArrayList(new Item.ItemBuilder(Integer.parseInt(itemParts[0]), itemParts[1]).build());
                         }
                         break;
-                    } case reAddItems: {
+                    }
+                    case reAddItems: {
                         out.println(CreateOutLine(Integer.toString(command.ordinal()), CreateOutLineOfList(itemIds)));
                         out.flush();
                         String itemString;
@@ -127,11 +130,21 @@ public class Client extends AsyncTask<String, Client, String> {
                             }
                         }
                         break;
-                    } case removeItemsFromList: {
+                    }
+                    case removeItemsFromList: {
                         out.println(CreateOutLine(Integer.toString(command.ordinal()), CreateOutLineOfList(itemIds)));
                         out.flush();
                         shoppingList.removeItemsFromItemArrayList(itemIds);
                         break;
+                    }
+                    case getLibraryItemsThatContain: {
+                        out.println(CreateOutLine(Integer.toString(command.ordinal()), CreateOutLine(searchString)));
+                        out.flush();
+                        String line;
+                        while ((line = in.readLine()) != null) {
+                            String[] itemParts = line.split(",");
+                            shoppingList.AddToLibraryItemArrayList(new Item.ItemBuilder(Integer.parseInt(itemParts[0]), itemParts[1]).build());
+                        }
                     }
                 }
                 in.close();
@@ -163,6 +176,7 @@ public class Client extends AsyncTask<String, Client, String> {
         private Item item;
         private List<Object> itemIds;
         private final String ipAddress;
+        private String searchString;
 
         public ClientBuilder(ByteCommand cmd, String ip)
         {
@@ -177,6 +191,11 @@ public class Client extends AsyncTask<String, Client, String> {
 
         public ClientBuilder Item (Item i) {
             item = i;
+            return this;
+        }
+
+        public ClientBuilder SearchString(String ss) {
+            searchString = ss;
             return this;
         }
 

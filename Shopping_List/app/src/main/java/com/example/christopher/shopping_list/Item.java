@@ -45,7 +45,7 @@ public class Item implements Comparable<Item>{
             if(Id != 0 && ((Item)in).getId() != 0) {
                 returnVal = (Id == ((Item) in).getId());
             } else if (Name != null && ((Item) in).getName() != null){
-                returnVal = Name.equals(((Item) in).getName().trim());
+                returnVal = Name.trim().equals(((Item) in).getName().trim());
             }
         }
         return returnVal;

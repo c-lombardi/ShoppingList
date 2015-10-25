@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -448,6 +450,24 @@ public class Shopping_List extends AppCompatActivity {
         itemLibraryChosenHashSet = new HashSet<>();
         libraryAdapter = new ItemsLibraryAdapter(inflatedView.getContext(), itemLibraryArrayList);
         final EditText itemNameView = (EditText) inflatedView.findViewById(R.id.itemName);
+        itemNameView.addTextChangedListener(new DelayedTextWatcher(1000) {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                final List<Item> localItemsNotFoundToBeRemoved = new ArrayList<Item>();
+                for(Item i :itemLibraryArrayList)
+                {
+                    if(!i.getName().toLowerCase().contains(s.toString()))
+                        localItemsNotFoundToBeRemoved.add(i);
+                }
+                itemLibraryArrayList.removeAll(localItemsNotFoundToBeRemoved);
+                NotifyAdapterThatItemLibraryListChanged();
+            }
+
+            @Override
+            public void afterTextChangedDelayed(Editable s) {
+                new Client.ClientBuilder(ByteCommand.getLibraryItemsThatContain, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).SearchString(s.toString()).build().execute();
+            }
+        });
         final ListView itemLibraryListView = (ListView) inflatedView.findViewById(R.id.libraryItemsListView);
         itemLibraryListView.setAdapter(libraryAdapter);
         itemLibraryListView.setEmptyView(inflatedView.findViewById(R.id.createEmpty));
@@ -457,30 +477,28 @@ public class Shopping_List extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 TextView itemNameTextView = (TextView) view.findViewById(R.id.itemName);
                 String chosenItemName = itemNameTextView.getText().toString();
-                Item itemFound = null;
-                for (Item i : itemLibraryChosenHashSet) {
-                    if (i.getName() == chosenItemName) {
-                        view.setBackgroundColor(Color.TRANSPARENT);
-                        itemFound = i;
-                        break;
+                Item foundItem = new Item.ItemBuilder(chosenItemName).build();
+                boolean isItemFound = false;
+                for(Item i : itemLibraryChosenHashSet)
+                {
+                    if(i.equals(foundItem)){
+                        foundItem = i;
+                        isItemFound = true;
                     }
                 }
-                if (itemFound == null) {
-                    for (Item i : itemLibraryArrayList) {
-                        if (i.getName() == chosenItemName) {
-                            itemLibraryChosenHashSet.add(i);
-                            changeColorLibrary(i, view);
-                            itemNameView.setEnabled(false);
-                            itemNameView.setVisibility(View.INVISIBLE);
-                            break;
-                        }
-                    }
+                if(isItemFound){
+                    view.setBackgroundColor(Color.TRANSPARENT);
+                    itemLibraryChosenHashSet.remove(foundItem);
                 } else {
-                    itemLibraryChosenHashSet.remove(itemFound);
+                    Item i = itemLibraryArrayList.get(itemLibraryArrayList.indexOf(foundItem));
+                    itemLibraryChosenHashSet.add(i);
+                    changeColorLibrary(i, view);
                 }
+
                 if (itemLibraryChosenHashSet.size() == 0) {
-                    itemNameView.setEnabled(true);
-                    itemNameView.setVisibility(View.VISIBLE);
+                    itemNameView.setHint(R.string.add_item);
+                } else {
+                    itemNameView.setHint(R.string.filter_results);
                 }
             }
         });

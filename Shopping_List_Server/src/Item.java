@@ -184,6 +184,21 @@ public class Item {
             }
         }
 
+        public List<ItemBuilder> getLibraryItemsThatContain(String itemNameSearchString) {
+            final List<ItemBuilder> returnList = new ArrayList<>();
+            try (final database db = new database()) {
+                final ResultSet rs = db.selectTableQuery(itemQueries.getLibraryItemsWithCharacters(itemNameSearchString));
+                while (rs.next()) {
+                    returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")));
+                }
+            } catch (Exception ex) {
+                System.out.println("Fail");
+                System.out.println(ex);
+            }finally {
+                return returnList;
+            }
+        }
+
         @Override
         public ItemBuilder update(boolean justFlipListActive) {
             try (final database db = new database()) {

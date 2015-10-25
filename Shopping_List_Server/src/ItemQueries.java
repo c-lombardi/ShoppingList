@@ -129,4 +129,21 @@ public class itemQueries {
         }
         return null;
     }
+
+    public static final String getLibraryItemsWithCharacters(String itemSearchString) {
+        try {
+            if(itemSearchString.isEmpty()) {
+                throw new Exception();
+            }
+            StringBuilder queryStringBuilder = new StringBuilder(String.format("SELECT ItemId, ItemName " +
+                    "FROM Items " +
+                    "WHERE (LibraryActive = TRUE AND ListActive = FALSE) " +
+                    "AND lower(ItemName) LIKE '%%" +
+                    "%s" +
+                    "%%'", itemSearchString.toLowerCase()));
+            return queryStringBuilder.toString();
+        } catch (Exception ex) {
+            return getAllItemsFromLibrary;
+        }
+    }
 }

@@ -99,6 +99,13 @@ public class Server implements Runnable {
                                     new Item.ItemBuilder().removeItems(MessageFromClient.split(";"));
                                     break;
                                 }
+                                case getLibraryItemsThatContain: {
+                                    for (final Item.ItemBuilder i : new Item.ItemBuilder().getLibraryItemsThatContain(MessageFromClient.split(";")[0])) {
+                                        out.println(i.build().toString());
+                                        out.flush();
+                                    }
+                                    break;
+                                }
                             }
                         }
                         catch (Exception ex) {
