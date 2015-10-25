@@ -15,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -39,6 +38,7 @@ public class Shopping_List extends AppCompatActivity {
     private static HashMap<String, Integer> colorDict;
     private static HashSet<Item> itemLibraryChosenHashSet;
     private static MenuItem itemTotalMenuItem;
+    private static MenuItem deleteItemsMenuItem;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -138,7 +138,7 @@ public class Shopping_List extends AppCompatActivity {
                         try {
                             for (Item i : itemArrayList) {
                                 if (i.getName().equals(itemName)) {
-                                    new Client.ClientBuilder(ByteCommand.removeItemFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), i, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).deleteButton((Button) findViewById(R.id.DeleteBoughtItems)).build().execute();
+                                    new Client.ClientBuilder(ByteCommand.removeItemFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), i, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                                     break;
                                 }
                             }
@@ -158,7 +158,7 @@ public class Shopping_List extends AppCompatActivity {
                 final TextView listItemTextView = (TextView) listItemView.findViewById(R.id.itemName);
                 final String itemName = listItemTextView.getText().toString();
                 handleColor(itemName, listItemView);
-                handleDeleteBoughtItemsButton((Button) findViewById(R.id.DeleteBoughtItems), (SwipeRefreshLayout) findViewById(R.id.swipe_container));
+                handleDeleteGreenItemsButton();
                 updateItemTotalTitle();
             }
         });
@@ -181,18 +181,14 @@ public class Shopping_List extends AppCompatActivity {
         }
     }
 
-    public void handleDeleteBoughtItemsButton (Button delButton, SwipeRefreshLayout swipeLayout) {
+    public void handleDeleteGreenItemsButton () {
         try {
-            final Button deleteButton = delButton;
-            final SwipeRefreshLayout swipeContainer = swipeLayout;
             if(colorDict.containsValue(Color.GREEN)) {
-                deleteButton.setVisibility(View.VISIBLE);
-                deleteButton.setEnabled(true);
-                swipeContainer.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (420 * (getResources().getDisplayMetrics().densityDpi / 160))));
+                deleteItemsMenuItem.setVisible(true);
+                deleteItemsMenuItem.setEnabled(true);
             } else {
-                deleteButton.setVisibility(View.INVISIBLE);
-                deleteButton.setEnabled(false);
-                swipeContainer.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                deleteItemsMenuItem.setVisible(false);
+                deleteItemsMenuItem.setEnabled(false);
             }
         } catch (Exception ex) {}
     }
@@ -395,7 +391,7 @@ public class Shopping_List extends AppCompatActivity {
                         for(Item i : itemLibraryChosenHashSet) {
                             itemIdLibraryChosenArrayList.add(i.getId());
                         }
-                        new Client.ClientBuilder(ByteCommand.reAddItems, (ListView) findViewById(R.id.libraryItemsListView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), itemIdLibraryChosenArrayList, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).deleteButton((Button) findViewById(R.id.DeleteBoughtItems)).build().execute();
+                        new Client.ClientBuilder(ByteCommand.reAddItems, (ListView) findViewById(R.id.libraryItemsListView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), itemIdLibraryChosenArrayList, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                     }
                     else {
                         final String itemName = itemNameView.getText().toString().trim();
@@ -449,6 +445,7 @@ public class Shopping_List extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_shopping__list, menu);
         itemTotalMenuItem = menu.findItem(R.id.itemTotals);
+        deleteItemsMenuItem = menu.findItem(R.id.deleteGreenItems);
         return true;
     }
 
@@ -550,7 +547,7 @@ public class Shopping_List extends AppCompatActivity {
         }
     }
 
-    public void DeleteBoughtItems(View buttonView) {
+    public void DeleteGreenItems(MenuItem item) {
         Iterator it = colorDict.entrySet().iterator();
         final List<Item> foundItems = new ArrayList<>();
         while (it.hasNext()){
@@ -568,7 +565,7 @@ public class Shopping_List extends AppCompatActivity {
             for (Item i : foundItems) {
                 foundItemIds.add(i.getId());
             }
-            new Client.ClientBuilder(ByteCommand.removeItemsFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), foundItemIds, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).deleteButton((Button) findViewById(R.id.DeleteBoughtItems)).build().execute();
+            new Client.ClientBuilder(ByteCommand.removeItemsFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), foundItemIds, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
         }
     }
 

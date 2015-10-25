@@ -2,7 +2,7 @@ package com.example.christopher.shopping_list;
 
 import android.os.AsyncTask;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.widget.Button;
+import android.view.MenuItem;
 import android.widget.ListView;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -23,7 +23,6 @@ public class Client extends AsyncTask<String, Client, String> {
     private final Shopping_List shoppingList;
     private final SwipeRefreshLayout swipeLayout;
     private final String ipAddress;
-    private final Button deleteItemsButton;
 
     private Client(ClientBuilder clientBuilder)
     {
@@ -34,7 +33,6 @@ public class Client extends AsyncTask<String, Client, String> {
         shoppingList = new Shopping_List();
         command = clientBuilder.command;
         ipAddress = clientBuilder.ipAddress;
-        deleteItemsButton = clientBuilder.deleteItemsButton;
     }
     private String CreateOutLineOfList(List<Object> objects){
         final StringBuilder sb = new StringBuilder();
@@ -170,7 +168,7 @@ public class Client extends AsyncTask<String, Client, String> {
         shoppingList.DisplayToast(str);
         shoppingList.NotifyAdapterThatItemListChanged();
         shoppingList.NotifyAdapterThatItemLibraryListChanged();
-        shoppingList.handleDeleteBoughtItemsButton(deleteItemsButton, swipeLayout);
+        shoppingList.handleDeleteGreenItemsButton();
     }
 
     public static class ClientBuilder {
@@ -180,7 +178,6 @@ public class Client extends AsyncTask<String, Client, String> {
         private final ListView listView;
         private final SwipeRefreshLayout swipeLayout;
         private final String ipAddress;
-        private Button deleteItemsButton;
 
         public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, Item i, String ip)
         {
@@ -204,11 +201,6 @@ public class Client extends AsyncTask<String, Client, String> {
             swipeLayout = srl;
             command = cmd;
             ipAddress = ip;
-        }
-
-        public ClientBuilder deleteButton(Button delButton){
-            deleteItemsButton = delButton;
-            return this;
         }
 
         public Client build() {

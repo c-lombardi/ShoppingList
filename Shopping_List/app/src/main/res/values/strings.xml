@@ -2,7 +2,8 @@
     <string name="app_name">EZ Shopper</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="add_item">New Item Name</string>
+    <string name="add_item">Add Item</string>
+    <string name="new_item_name">New Item Name</string>
     <string name="remove_items">Remove Green Items</string>
     <string name="no_items">No Items Available</string>
 </resources>

@@ -5,6 +5,14 @@
         android:title="0.00"
         android:orderInCategory="100"
         app:showAsAction="ifRoom|withText" />
+    <item android:id="@+id/deleteGreenItems"
+        android:title="@string/remove_items"
+        android:orderInCategory="100"
+        android:icon="@mipmap/trash_can"
+        android:onClick="DeleteGreenItems"
+        android:visible="false"
+        android:enabled="false"
+        app:showAsAction="ifRoom|withText" />
     <item android:id="@+id/action_add"
         android:title="@string/add_item"
         android:icon="@mipmap/sym_action_add"
