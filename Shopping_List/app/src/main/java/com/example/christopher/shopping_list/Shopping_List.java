@@ -55,6 +55,7 @@ public class Shopping_List extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 try {
+                    itemListView.setEnabled(false);
                     new Client.ClientBuilder(ByteCommand.getItems, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                 } catch (Exception ex) {
                     System.out.println("fail");
@@ -287,6 +288,7 @@ public class Shopping_List extends AppCompatActivity {
             sort(itemArrayList);
             adapter.notifyDataSetChanged();
             updateItemTotalTitle();
+            itemListView.setEnabled(true);
         }
         catch (Exception ex)
         {
