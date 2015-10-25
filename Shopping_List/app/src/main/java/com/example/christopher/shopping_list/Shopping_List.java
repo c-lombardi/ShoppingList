@@ -17,7 +17,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +38,8 @@ public class Shopping_List extends AppCompatActivity {
     private static HashSet<Item> itemLibraryChosenHashSet;
     private static MenuItem itemTotalMenuItem;
     private static MenuItem deleteItemsMenuItem;
+    private static ListView itemListView;
+    private static SwipeRefreshLayout swipeRefreshLayout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,25 +47,25 @@ public class Shopping_List extends AppCompatActivity {
         colorDict = new HashMap<>();
         itemArrayList = new ArrayList<>();
         adapter = new ItemsAdapter(this, itemArrayList);
-        final ListView listView = (ListView) findViewById(R.id.listView);
-        listView.setEmptyView(findViewById(R.id.empty));
-        listView.setAdapter(adapter);
-        final SwipeRefreshLayout swipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
-        swipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        itemListView = (ListView) findViewById(R.id.listView);
+        itemListView.setEmptyView(findViewById(R.id.empty));
+        itemListView.setAdapter(adapter);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 try {
-                    new Client.ClientBuilder(ByteCommand.getItems, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                    new Client.ClientBuilder(ByteCommand.getItems, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                 } catch (Exception ex) {
                     System.out.println("fail");
                 }
             }
         });
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        itemListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 final AlertDialog.Builder alert = new AlertDialog.Builder(Shopping_List.this);
-                final View listItemView = getViewByPosition(position, listView);
+                final View listItemView = getViewByPosition(position);
                 final TextView listItemTextView = (TextView)listItemView.findViewById(R.id.itemName);
                 final String itemName = listItemTextView.getText().toString();
                 alert.setTitle(String.format("Remove or Edit %s", itemName));
@@ -113,7 +114,7 @@ public class Shopping_List extends AppCompatActivity {
                                                     final Store.StoreBuilder sb = new Store.StoreBuilder(storeName);
                                                     ib.store(sb.build());
                                                 }
-                                                new Client.ClientBuilder(ByteCommand.updateItem, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), ib.build(), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                                                new Client.ClientBuilder(ByteCommand.updateItem, ib.build(), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                                                 updateItemTotalTitle();
                                             }
                                             break;
@@ -138,7 +139,7 @@ public class Shopping_List extends AppCompatActivity {
                         try {
                             for (Item i : itemArrayList) {
                                 if (i.getName().equals(itemName)) {
-                                    new Client.ClientBuilder(ByteCommand.removeItemFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), i, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                                    new Client.ClientBuilder(ByteCommand.removeItemFromList, i, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                                     break;
                                 }
                             }
@@ -151,10 +152,10 @@ public class Shopping_List extends AppCompatActivity {
                 return true;
             }
         });
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        itemListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final View listItemView = getViewByPosition(position, listView);
+                final View listItemView = getViewByPosition(position);
                 final TextView listItemTextView = (TextView) listItemView.findViewById(R.id.itemName);
                 final String itemName = listItemTextView.getText().toString();
                 handleColor(itemName, listItemView);
@@ -164,6 +165,13 @@ public class Shopping_List extends AppCompatActivity {
         });
     }
 
+    public void setSwipeRefreshlayoutRefreshing(boolean refresh){
+        try {
+            swipeRefreshLayout.setRefreshing(refresh);
+        } catch (Exception ex) {
+
+        }
+    }
 
     private void changeColorLibrary(Item item, View view) {
         if(itemLibraryChosenHashSet.contains(item)) {
@@ -173,11 +181,11 @@ public class Shopping_List extends AppCompatActivity {
         }
     }
 
-    private void populateColorDict(String itemName, View view) {
-        if(!colorDict.containsKey(itemName)) {
-            colorDict.put(itemName, Color.TRANSPARENT);
+    private void populateColorDict(Item item, View view) {
+        if(!colorDict.containsKey(item.getName())) {
+            colorDict.put(item.getName(), Color.TRANSPARENT);
         } else {
-            view.setBackgroundColor(colorDict.get(itemName));
+            view.setBackgroundColor(colorDict.get(item.getName()));
         }
     }
 
@@ -221,26 +229,25 @@ public class Shopping_List extends AppCompatActivity {
 
     }
 
-    private View getViewByPosition(int pos, ListView listView) {
-        final int firstListItemPosition = listView.getFirstVisiblePosition();
-        final int lastListItemPosition = firstListItemPosition + listView.getChildCount() - 1;
+    private View getViewByPosition(int pos) {
+        final int firstListItemPosition = itemListView.getFirstVisiblePosition();
+        final int lastListItemPosition = firstListItemPosition + itemListView.getChildCount() - 1;
 
         if (pos < firstListItemPosition || pos > lastListItemPosition ) {
-            return listView.getAdapter().getView(pos, null, listView);
+            return itemListView.getAdapter().getView(pos, null, itemListView);
         } else {
             final int childIndex = pos - firstListItemPosition;
-            return listView.getChildAt(childIndex);
+            return itemListView.getChildAt(childIndex);
         }
     }
 
     @Override
     protected void onStart(){
         super.onStart();
-        final SwipeRefreshLayout layout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
-        layout.post(new Runnable() {
+        swipeRefreshLayout.post(new Runnable() {
             @Override
             public void run() {
-                new Client.ClientBuilder(ByteCommand.getItems, (ListView) findViewById(R.id.listView), layout, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                new Client.ClientBuilder(ByteCommand.getItems, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
             }
         });
     }
@@ -347,7 +354,7 @@ public class Shopping_List extends AppCompatActivity {
         final ListView itemLibraryListView = (ListView) inflatedView.findViewById(R.id.libraryItemsListView);
         itemLibraryListView.setAdapter(libraryAdapter);
         itemLibraryListView.setEmptyView(inflatedView.findViewById(R.id.createEmpty));
-        new Client.ClientBuilder(ByteCommand.getLibrary, (ListView) findViewById(R.id.libraryItemsListView), null, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+        new Client.ClientBuilder(ByteCommand.getLibrary, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
         itemLibraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -391,13 +398,13 @@ public class Shopping_List extends AppCompatActivity {
                         for(Item i : itemLibraryChosenHashSet) {
                             itemIdLibraryChosenArrayList.add(i.getId());
                         }
-                        new Client.ClientBuilder(ByteCommand.reAddItems, (ListView) findViewById(R.id.libraryItemsListView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), itemIdLibraryChosenArrayList, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                        new Client.ClientBuilder(ByteCommand.reAddItems, itemIdLibraryChosenArrayList, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                     }
                     else {
                         final String itemName = itemNameView.getText().toString().trim();
                         if (!itemName.isEmpty()) {
                             final Item.ItemBuilder ib = new Item.ItemBuilder(itemName);
-                            new Client.ClientBuilder(ByteCommand.addItem, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), ib.build(), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+                            new Client.ClientBuilder(ByteCommand.addItem, ib.build(), getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
                         }
                     }
                 } catch (Exception e) {
@@ -506,15 +513,14 @@ public class Shopping_List extends AppCompatActivity {
             try {
                 tvName.setText(item.getName());
                 tvPrice.setText(String.valueOf("$" + item.getBestPrice()));
+                tvHome.setText("");
                 if(item.getStore() != null) {
                     tvHome.setText(item.getStore().getName());
-                } else {
-                    tvHome.setText("");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            populateColorDict(item.getName(), convertView);
+            populateColorDict(item, convertView);
             // Return the completed view to render on screen
             return convertView;
         }
@@ -565,7 +571,7 @@ public class Shopping_List extends AppCompatActivity {
             for (Item i : foundItems) {
                 foundItemIds.add(i.getId());
             }
-            new Client.ClientBuilder(ByteCommand.removeItemsFromList, (ListView) findViewById(R.id.listView), (SwipeRefreshLayout) findViewById(R.id.swipe_container), foundItemIds, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
+            new Client.ClientBuilder(ByteCommand.removeItemsFromList, foundItemIds, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
         }
     }
 

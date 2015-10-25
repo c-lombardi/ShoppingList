@@ -1,9 +1,6 @@
 package com.example.christopher.shopping_list;
 
 import android.os.AsyncTask;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.view.MenuItem;
-import android.widget.ListView;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -19,15 +16,11 @@ public class Client extends AsyncTask<String, Client, String> {
     private Socket socket;
     private final Item item;
     private List<Object> itemIds;
-    private final ListView listView;
     private final Shopping_List shoppingList;
-    private final SwipeRefreshLayout swipeLayout;
     private final String ipAddress;
 
     private Client(ClientBuilder clientBuilder)
     {
-        listView = clientBuilder.listView;
-        swipeLayout = clientBuilder.swipeLayout;
         item = clientBuilder.item;
         itemIds = clientBuilder.itemIds;
         shoppingList = new Shopping_List();
@@ -62,10 +55,7 @@ public class Client extends AsyncTask<String, Client, String> {
     @Override
     protected void onPreExecute(){
         try {
-            if (listView != null)
-                listView.setEnabled(false);
-            if (swipeLayout != null)
-                swipeLayout.setRefreshing(true);
+            shoppingList.setSwipeRefreshlayoutRefreshing(true);
         } catch (Exception ex){}
     }
     @Override
@@ -161,10 +151,7 @@ public class Client extends AsyncTask<String, Client, String> {
 
     @Override
     public void onPostExecute(String str){
-        if(listView != null)
-            listView.setEnabled(true);
-        if(swipeLayout != null)
-            swipeLayout.setRefreshing(false);
+        shoppingList.setSwipeRefreshlayoutRefreshing(false);
         shoppingList.DisplayToast(str);
         shoppingList.NotifyAdapterThatItemListChanged();
         shoppingList.NotifyAdapterThatItemLibraryListChanged();
@@ -175,30 +162,22 @@ public class Client extends AsyncTask<String, Client, String> {
         private final ByteCommand command;
         private Item item;
         private List<Object> itemIds;
-        private final ListView listView;
-        private final SwipeRefreshLayout swipeLayout;
         private final String ipAddress;
 
-        public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, Item i, String ip)
+        public ClientBuilder(ByteCommand cmd, Item i, String ip)
         {
-            listView = lv;
-            swipeLayout = srl;
             item = i;
             command = cmd;
             ipAddress = ip;
         }
-        public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, List<Object> i, String ip)
+        public ClientBuilder(ByteCommand cmd, List<Object> i, String ip)
         {
-            listView = lv;
-            swipeLayout = srl;
             itemIds = i;
             command = cmd;
             ipAddress = ip;
         }
-        public ClientBuilder(ByteCommand cmd, ListView lv, SwipeRefreshLayout srl, String ip)
+        public ClientBuilder(ByteCommand cmd, String ip)
         {
-            listView = lv;
-            swipeLayout = srl;
             command = cmd;
             ipAddress = ip;
         }

@@ -178,6 +178,7 @@ public class Item {
                 }
             } catch (Exception ex) {
                 System.out.println("Fail");
+                System.out.println(ex);
             }finally {
                 return returnList;
             }
