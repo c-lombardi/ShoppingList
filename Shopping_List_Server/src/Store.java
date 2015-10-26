@@ -73,7 +73,6 @@ public class Store {
                     while (rs.next()) {
                         Id = rs.getInt("StoreId");
                     }
-
                 } catch (Exception ex) {
                     throw ex;
                 }

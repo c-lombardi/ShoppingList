@@ -3,6 +3,8 @@
  */
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class database implements AutoCloseable {
     Connection db = null;
@@ -13,9 +15,11 @@ public class database implements AutoCloseable {
     static final String username = "postgres";
     static final String password = "password";
     static final String createDatabase = "CREATE DATABASE " + databaseName;
+    private static List<Statement> statementsToClose;
 
     public database() throws ClassNotFoundException, SQLException {
         Class.forName("org.postgresql.Driver");
+        statementsToClose = new ArrayList<>();
         try {
             db = DriverManager.getConnection(url, username, password);
             createDatabase();
@@ -53,11 +57,13 @@ public class database implements AutoCloseable {
     public void updateTableQuery(String query) throws SQLException {
         stmt = db.prepareStatement(query);
         stmt.executeUpdate();
+        stmt.close();
     }
 
     public ResultSet selectTableQuery(String query) throws SQLException {
         stmt = db.prepareStatement(query);
         final ResultSet rs = stmt.executeQuery();
+        statementsToClose.add(stmt);
         return rs;
     }
 
@@ -65,6 +71,11 @@ public class database implements AutoCloseable {
     public void close() throws Exception {
         while(!db.isClosed()){
             try {
+                for(Statement s : statementsToClose) {
+                    try {
+                        s.close();
+                    } catch (Exception ex){}
+                }
                 db.close();
             } catch (Exception ex) {
                 db.close();
