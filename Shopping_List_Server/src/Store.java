@@ -67,12 +67,17 @@ public class Store {
 
         @Override
         public StoreBuilder create() {
-            try (final database db = new database()) {
-                final ResultSet rs = db.selectTableQuery(StoreQueries.addStore(Name));
-                while (rs.next()) {
-                    Id = rs.getInt("StoreId");
+            try {
+                try (final database db = new database()) {
+                    final ResultSet rs = db.selectTableQuery(StoreQueries.addStore(Name));
+                    while (rs.next()) {
+                        Id = rs.getInt("StoreId");
+                    }
+
+                } catch (Exception ex) {
+                    throw ex;
                 }
-            } catch (Exception ex) {
+            }catch (Exception ex) {
                 read();
             } finally {
                 return this;
@@ -115,13 +120,19 @@ public class Store {
 
         @Override
         public StoreBuilder update(boolean justFlipListActive) {
-            try (final database db = new database()) {
-                if (Name != null) {
-                    if (Id != 0) {
-                        db.updateTableQuery(StoreQueries.updateStore(this.build()));
-                    } else {
-                        throw new SQLException();
+            try
+            {
+                try (final database db = new database()) {
+                    if (Name != null) {
+                        if (Id != 0) {
+                            db.updateTableQuery(StoreQueries.updateStore(this.build()));
+                        } else {
+                            throw new SQLException();
+                        }
                     }
+                }
+                catch (Exception ex) {
+                    throw ex;
                 }
             } catch (Exception ex) {
                 create();

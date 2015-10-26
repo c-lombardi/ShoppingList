@@ -449,7 +449,7 @@ public class Shopping_List extends AppCompatActivity {
         itemLibraryChosenHashSet = new HashSet<>();
         libraryAdapter = new ItemsLibraryAdapter(inflatedView.getContext(), itemLibraryArrayList);
         final EditText itemNameView = (EditText) inflatedView.findViewById(R.id.itemName);
-        itemNameView.addTextChangedListener(new DelayedTextWatcher(1000) {
+        itemNameView.addTextChangedListener(new DelayedTextWatcher(200) {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 final List<Item> localItemsNotFoundToBeRemoved = new ArrayList<Item>();

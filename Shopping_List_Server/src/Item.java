@@ -110,15 +110,19 @@ public class Item {
 
         @Override
         public ItemBuilder create() {
-            try (final database db = new database()) {
-                if(Store != null) {
-                    Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
-                }
-                final ResultSet rs = db.selectTableQuery(itemQueries.addItem(this.build()));
-                while (rs.next()) {
-                    Id = rs.getInt("ItemId");
-                    ListActive = true;
-                    LibraryActive = true;
+            try {
+                try (final database db = new database()) {
+                    if (Store != null) {
+                        Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
+                    }
+                    final ResultSet rs = db.selectTableQuery(itemQueries.addItem(this.build()));
+                    while (rs.next()) {
+                        Id = rs.getInt("ItemId");
+                        ListActive = true;
+                        LibraryActive = true;
+                    }
+                } catch (Exception ex) {
+                    throw ex;
                 }
             } catch (Exception ex) {
                 update(true);
@@ -201,24 +205,28 @@ public class Item {
 
         @Override
         public ItemBuilder update(boolean justFlipListActive) {
-            try (final database db = new database()) {
-                if (Name != null) {
-                    if(Store != null) {
-                        Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
-                    }
-                    if(!justFlipListActive) {
-                        if (Id != 0) {
-                            db.updateTableQuery(itemQueries.updateItemById(this.build()));
-                        } else {
-                            db.updateTableQuery(itemQueries.updateItemByName(this.build()));
+            try {
+                try (final database db = new database()) {
+                    if (Name != null) {
+                        if (Store != null) {
+                            Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
                         }
-                    } else {
-                        if (Id != 0) {
-                            db.updateTableQuery(itemQueries.makeActiveById(this.build()));
+                        if (!justFlipListActive) {
+                            if (Id != 0) {
+                                db.updateTableQuery(itemQueries.updateItemById(this.build()));
+                            } else {
+                                db.updateTableQuery(itemQueries.updateItemByName(this.build()));
+                            }
                         } else {
-                            db.updateTableQuery(itemQueries.makeActiveByName(this.build()));
+                            if (Id != 0) {
+                                db.updateTableQuery(itemQueries.makeActiveById(this.build()));
+                            } else {
+                                db.updateTableQuery(itemQueries.makeActiveByName(this.build()));
+                            }
                         }
                     }
+                } catch (Exception ex) {
+                    throw ex;
                 }
             } catch (Exception ex) {
                 create();
