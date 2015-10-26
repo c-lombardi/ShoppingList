@@ -1,3 +1,4 @@
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -67,16 +68,15 @@ public class Store {
 
         @Override
         public StoreBuilder create() {
-            try {
-                try (final database db = new database()) {
-                    final ResultSet rs = db.selectTableQuery(StoreQueries.addStore(Name));
-                    while (rs.next()) {
-                        Id = rs.getInt("StoreId");
+            try (final database db = new database()) {
+                try(final PreparedStatement stmt = db.selectTableQuery(StoreQueries.addStore(Name))) {
+                    try (final ResultSet rs = stmt.executeQuery()) {
+                        while (rs.next()) {
+                            Id = rs.getInt("StoreId");
+                        }
                     }
-                } catch (Exception ex) {
-                    throw ex;
                 }
-            }catch (Exception ex) {
+            } catch (Exception ex) {
                 read();
             } finally {
                 return this;
@@ -87,14 +87,20 @@ public class Store {
         public StoreBuilder read() {
             try (final database db = new database()) {
                 if(Id != 0) {
-                    final ResultSet rs = db.selectTableQuery(StoreQueries.getStoreById(Id));
-                    while (rs.next()) {
-                        Name = rs.getString("StoreName");
+                    try(final PreparedStatement stmt = db.selectTableQuery(StoreQueries.getStoreById(Id))) {
+                        try (final ResultSet rs = stmt.executeQuery()) {
+                            while (rs.next()) {
+                                Name = rs.getString("StoreName");
+                            }
+                        }
                     }
                 } else if(Name != null) {
-                    final ResultSet rs = db.selectTableQuery(StoreQueries.getStoreByName(Name));
-                    while (rs.next()) {
-                        Id = rs.getInt("StoreId");
+                    try (final PreparedStatement stmt = db.selectTableQuery(StoreQueries.getStoreByName(Name))) {
+                        try (final ResultSet rs = stmt.executeQuery()) {
+                            while (rs.next()) {
+                                Id = rs.getInt("StoreId");
+                            }
+                        }
                     }
                 }
             } catch (Exception ex) {
@@ -108,9 +114,12 @@ public class Store {
         public List<StoreBuilder> readAll(boolean fromLibrary) {
             final List<StoreBuilder> returnList = new ArrayList<>();
             try (final database db = new database()) {
-                final ResultSet rs = db.selectTableQuery(StoreQueries.getCountFromStores());
-                while(rs.next()){
-                    returnList.add(new StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")));
+                try (final PreparedStatement stmt = db.selectTableQuery(StoreQueries.getCountFromStores())) {
+                    try (final ResultSet rs = stmt.executeQuery()) {
+                        while (rs.next()) {
+                            returnList.add(new StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")));
+                        }
+                    }
                 }
             } catch (Exception ex){} finally {
                 return returnList;
@@ -119,19 +128,13 @@ public class Store {
 
         @Override
         public StoreBuilder update(boolean justFlipListActive) {
-            try
-            {
-                try (final database db = new database()) {
-                    if (Name != null) {
-                        if (Id != 0) {
-                            db.updateTableQuery(StoreQueries.updateStore(this.build()));
-                        } else {
-                            throw new SQLException();
-                        }
+            try (final database db = new database()) {
+                if (Name != null) {
+                    if (Id != 0) {
+                        db.updateTableQuery(StoreQueries.updateStore(this.build()));
+                    } else {
+                        throw new SQLException();
                     }
-                }
-                catch (Exception ex) {
-                    throw ex;
                 }
             } catch (Exception ex) {
                 create();

@@ -1,3 +1,4 @@
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -110,19 +111,18 @@ public class Item {
 
         @Override
         public ItemBuilder create() {
-            try {
-                try (final database db = new database()) {
-                    if (Store != null) {
-                        Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
+            try (final database db = new database()) {
+                if(Store != null) {
+                    Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
+                }
+                try (final PreparedStatement stmt = db.selectTableQuery(itemQueries.addItem(this.build()))) {
+                    try (final ResultSet rs = stmt.executeQuery()) {
+                        while (rs.next()) {
+                            Id = rs.getInt("ItemId");
+                            ListActive = true;
+                            LibraryActive = true;
+                        }
                     }
-                    final ResultSet rs = db.selectTableQuery(itemQueries.addItem(this.build()));
-                    while (rs.next()) {
-                        Id = rs.getInt("ItemId");
-                        ListActive = true;
-                        LibraryActive = true;
-                    }
-                } catch (Exception ex) {
-                    throw ex;
                 }
             } catch (Exception ex) {
                 update(true);
@@ -136,26 +136,32 @@ public class Item {
         public ItemBuilder read() {
             try (final database db = new database()) {
                 if(Id != 0) {
-                    ResultSet rs = db.selectTableQuery(itemQueries.getItemById(Id));
-                    while (rs.next()) {
-                        Name = rs.getString("ItemName");
-                        BestPrice = rs.getFloat("BestPrice");
-                        ListActive = rs.getBoolean("ListActive");
-                        LibraryActive = rs.getBoolean("LibraryActive");
-                        Store.StoreBuilder sb = new Store.StoreBuilder().Id(rs.getInt("StoreId"));
-                        sb.read();
-                        Store = sb.build();
+                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getItemById(Id))) {
+                        try (final ResultSet rs = stmt.executeQuery()) {
+                            while (rs.next()) {
+                                Name = rs.getString("ItemName");
+                                BestPrice = rs.getFloat("BestPrice");
+                                ListActive = rs.getBoolean("ListActive");
+                                LibraryActive = rs.getBoolean("LibraryActive");
+                                Store.StoreBuilder sb = new Store.StoreBuilder().Id(rs.getInt("StoreId"));
+                                sb.read();
+                                Store = sb.build();
+                            }
+                        }
                     }
                 } else if(Name != null) {
-                    final ResultSet rs = db.selectTableQuery(itemQueries.getItemByName(Name));
-                    while (rs.next()) {
-                        Id = rs.getInt("ItemId");
-                        BestPrice = rs.getFloat("BestPrice");
-                        ListActive = rs.getBoolean("ListActive");
-                        LibraryActive = rs.getBoolean("LibraryActive");
-                        Store.StoreBuilder sb = new Store.StoreBuilder().Id(rs.getInt("StoreId"));
-                        sb.read();
-                        Store = sb.build();
+                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getItemByName(Name))) {
+                        try (final ResultSet rs = stmt.executeQuery()) {
+                            while (rs.next()) {
+                                Id = rs.getInt("ItemId");
+                                BestPrice = rs.getFloat("BestPrice");
+                                ListActive = rs.getBoolean("ListActive");
+                                LibraryActive = rs.getBoolean("LibraryActive");
+                                Store.StoreBuilder sb = new Store.StoreBuilder().Id(rs.getInt("StoreId"));
+                                sb.read();
+                                Store = sb.build();
+                            }
+                        }
                     }
                 }
             } catch (Exception ex) {
@@ -170,14 +176,20 @@ public class Item {
             final List<ItemBuilder> returnList = new ArrayList<>();
             try (final database db = new database()) {
                 if(!fromLibrary) {
-                    final ResultSet rs = db.selectTableQuery(itemQueries.getAllItemsFromList());
-                    while (rs.next()) {
-                        returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
+                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getAllItemsFromList())) {
+                        try(final ResultSet rs = stmt.executeQuery()) {
+                            while (rs.next()) {
+                                returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
+                            }
+                        }
                     }
                 } else {
-                    final ResultSet rs = db.selectTableQuery(itemQueries.getAllItemsFromLibrary);
-                    while (rs.next()) {
-                        returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")));
+                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getAllItemsFromLibrary)) {
+                        try(final ResultSet rs = stmt.executeQuery()) {
+                            while (rs.next()) {
+                                returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")));
+                            }
+                        }
                     }
                 }
             } catch (Exception ex) {
@@ -191,9 +203,12 @@ public class Item {
         public List<ItemBuilder> getLibraryItemsThatContain(String itemNameSearchString) {
             final List<ItemBuilder> returnList = new ArrayList<>();
             try (final database db = new database()) {
-                final ResultSet rs = db.selectTableQuery(itemQueries.getLibraryItemsWithCharacters(itemNameSearchString));
-                while (rs.next()) {
-                    returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")));
+                try (final PreparedStatement stmt = db.selectTableQuery(itemQueries.getLibraryItemsWithCharacters(itemNameSearchString))) {
+                    try (final ResultSet rs = stmt.executeQuery()) {
+                        while (rs.next()) {
+                            returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")));
+                        }
+                    }
                 }
             } catch (Exception ex) {
                 System.out.println("Fail");
@@ -205,28 +220,24 @@ public class Item {
 
         @Override
         public ItemBuilder update(boolean justFlipListActive) {
-            try {
-                try (final database db = new database()) {
-                    if (Name != null) {
-                        if (Store != null) {
-                            Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
-                        }
-                        if (!justFlipListActive) {
-                            if (Id != 0) {
-                                db.updateTableQuery(itemQueries.updateItemById(this.build()));
-                            } else {
-                                db.updateTableQuery(itemQueries.updateItemByName(this.build()));
-                            }
+            try (final database db = new database()) {
+                if (Name != null) {
+                    if(Store != null) {
+                        Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
+                    }
+                    if(!justFlipListActive) {
+                        if (Id != 0) {
+                            db.updateTableQuery(itemQueries.updateItemById(this.build()));
                         } else {
-                            if (Id != 0) {
-                                db.updateTableQuery(itemQueries.makeActiveById(this.build()));
-                            } else {
-                                db.updateTableQuery(itemQueries.makeActiveByName(this.build()));
-                            }
+                            db.updateTableQuery(itemQueries.updateItemByName(this.build()));
+                        }
+                    } else {
+                        if (Id != 0) {
+                            db.updateTableQuery(itemQueries.makeActiveById(this.build()));
+                        } else {
+                            db.updateTableQuery(itemQueries.makeActiveByName(this.build()));
                         }
                     }
-                } catch (Exception ex) {
-                    throw ex;
                 }
             } catch (Exception ex) {
                 create();
@@ -268,9 +279,12 @@ public class Item {
             try (final database db = new database()) {
                 if(itemIds.length != 0) {
                     db.updateTableQuery(itemQueries.reAddItemsByIds(itemIds));
-                    final ResultSet rs = db.selectTableQuery(itemQueries.getItemsByIds(itemIds));
-                    while (rs.next()) {
-                        returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
+                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getItemsByIds(itemIds))) {
+                        try(final ResultSet rs = stmt.executeQuery()) {
+                            while (rs.next()) {
+                                returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
+                            }
+                        }
                     }
                 }
             } catch (Exception ex) {
