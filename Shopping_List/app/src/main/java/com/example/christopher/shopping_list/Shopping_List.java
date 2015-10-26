@@ -67,14 +67,14 @@ public class Shopping_List extends AppCompatActivity {
         itemListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                final AlertDialog.Builder alert = new AlertDialog.Builder(Shopping_List.this);
+                //final AlertDialog.Builder alert = new AlertDialog.Builder(Shopping_List.this);
                 final View listItemView = getViewByPosition(position);
                 final TextView listItemTextView = (TextView)listItemView.findViewById(R.id.itemName);
                 final String itemName = listItemTextView.getText().toString();
-                alert.setTitle(String.format("Remove or Edit %s", itemName));
-                alert.setMessage("I love you, Alina!");
-                alert.setPositiveButton("Edit", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
+                //alert.setTitle(String.format("Remove or Edit %s", itemName));
+                //alert.setMessage("I love you, Alina!");
+                //alert.setPositiveButton("Edit", new DialogInterface.OnClickListener() {
+                    //public void onClick(DialogInterface dialog, int whichButton) {
                         final AlertDialog.Builder alert = new AlertDialog.Builder(Shopping_List.this);
                         alert.setTitle("Edit Item");
                         alert.setMessage("I love you, Alina!");
@@ -129,10 +129,10 @@ public class Shopping_List extends AppCompatActivity {
                             }
                         });
                         alert.show();
-                    }
-                });
+                    //}
+                //});
 
-                alert.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+                /*alert.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                     }
                 });
@@ -151,7 +151,7 @@ public class Shopping_List extends AppCompatActivity {
                         }
                     }
                 });
-                alert.show();
+                alert.show();*/
                 return true;
             }
         });
