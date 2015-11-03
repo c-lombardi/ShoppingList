@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.UUID;
 
 /**
  * Created by Christopher on 9/2/2015.
@@ -58,7 +59,7 @@ public class Server implements Runnable {
                             PrintWriter out = new PrintWriter(socket.getOutputStream());
                             switch (command) {
                                 case getItems: {
-                                    for (final Item.ItemBuilder i : new Item.ItemBuilder().readAll(false)) {
+                                    for (final Item.ItemBuilder i : new Item.ItemBuilder().readAll(false, UUID.fromString(MessageFromClient))) {
                                         out.println(i.build().toString());
                                         out.flush();
                                     }
@@ -67,14 +68,14 @@ public class Server implements Runnable {
                                 case addItem: {
                                     if (!(MessageFromClient.length() < 2)) {
                                         final Item inputItem = Item.fromString(MessageFromClient);
-                                        out.println(new Item.ItemBuilder(inputItem.getId(), inputItem.getName()).bestPrice(inputItem.getBestPrice()).listActive(true).store(inputItem.getStore()).libraryActive(true).create().build().toString());
+                                        out.println(new Item.ItemBuilder(inputItem.getId(), inputItem.getName(), inputItem.getSessionId()).bestPrice(inputItem.getBestPrice()).listActive(true).store(inputItem.getStore()).libraryActive(true).create().build().toString());
                                         out.flush();
                                     }
                                     break;
                                 }
                                 case updateItem: {
                                     final Item inputItem = Item.fromString(MessageFromClient);
-                                    out.println(new Item.ItemBuilder(inputItem.getId(), inputItem.getName()).bestPrice(inputItem.getBestPrice()).listActive(true).store(inputItem.getStore()).libraryActive(true).update(false).build().getId());
+                                    out.println(new Item.ItemBuilder(inputItem.getId(), inputItem.getName(), inputItem.getSessionId()).bestPrice(inputItem.getBestPrice()).listActive(true).store(inputItem.getStore()).libraryActive(true).update(false).build().getId());
                                     out.flush();
                                     break;
                                 }
@@ -83,14 +84,20 @@ public class Server implements Runnable {
                                     break;
                                 }
                                 case getLibrary: {
-                                    for (final Item.ItemBuilder i : new Item.ItemBuilder().readAll(true)) {
+                                    for (final Item.ItemBuilder i : new Item.ItemBuilder().readAll(true, UUID.fromString(MessageFromClient))) {
                                         out.println(i.build().toString());
                                         out.flush();
                                     }
                                     break;
                                 }
                                 case reAddItems: {
-                                    for(Item.ItemBuilder ib : new Item.ItemBuilder().reAdd(MessageFromClient.split(";"))) {
+                                    final String[] itemIds = MessageFromClient.split(";");
+                                    final UUID sessionId = UUID.fromString(itemIds[0]);
+                                    final String[] itemIdsToAdd = new String[itemIds.length - 1];
+                                    for(int i = 1; i < itemIds.length; i++) {
+                                        itemIdsToAdd[i-1] = itemIds[i];
+                                    }
+                                    for(Item.ItemBuilder ib : new Item.ItemBuilder().reAdd(itemIdsToAdd, sessionId)) {
                                         out.println(ib.build().toString());
                                         out.flush();
                                     }
@@ -102,6 +109,32 @@ public class Server implements Runnable {
                                 case getLibraryItemsThatContain: {
                                     for (final Item.ItemBuilder i : new Item.ItemBuilder().getLibraryItemsThatContain(MessageFromClient.split(";")[0])) {
                                         out.println(i.build().toString());
+                                        out.flush();
+                                    }
+                                    break;
+                                }
+                                case createSession: {
+                                    final String[] sessionParts = MessageFromClient.split(";");
+                                    final String deviceId = sessionParts[0];
+                                    final String sessionName = sessionParts[1];
+                                    final Session session = new Session.SessionBuilder(null, sessionName).create().build();
+                                    new SessionDevice.SessionDeviceBuilder(session.getSessionId(), deviceId).create();
+                                    break;
+                                }
+                                case authorizeSession: {
+                                    final SessionDevice sessionDevice = SessionDevice.fromString(MessageFromClient);
+                                    out.println(new SessionDevice.SessionDeviceBuilder(sessionDevice.getSessionId(), sessionDevice.getDeviceId()).authorizeSession().toString());
+                                    out.flush();
+                                    break;
+                                }
+                                case grantAccessToSession: {
+                                    final SessionDevice sessionDevice = SessionDevice.fromString(MessageFromClient);
+                                    new SessionDevice.SessionDeviceBuilder(sessionDevice.getSessionId(), sessionDevice.getDeviceId()).create();
+                                    break;
+                                }
+                                case getSessionsForDevice: {
+                                    for (final Session.SessionBuilder s : new SessionDevice.SessionDeviceBuilder(null, MessageFromClient).getAuthorizedSessionsForDevice()) {
+                                        out.println(s.build().toString());
                                         out.flush();
                                     }
                                     break;

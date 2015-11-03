@@ -3,6 +3,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Christopher on 9/1/2015.
@@ -14,6 +15,7 @@ public class Item {
     private final boolean ListActive;
     private final boolean LibraryActive;
     private final float BestPrice;
+    private final UUID SessionId;
 
     private Item(ItemBuilder itemBuilder) {
         Id = itemBuilder.Id;
@@ -22,10 +24,15 @@ public class Item {
         ListActive = itemBuilder.ListActive;
         LibraryActive = itemBuilder.LibraryActive;
         BestPrice = itemBuilder.BestPrice;
+        SessionId = itemBuilder.SessionId;
     }
 
     public float getBestPrice() {
         return BestPrice;
+    }
+
+    public UUID getSessionId() {
+        return SessionId;
     }
 
     public int getId() {
@@ -47,6 +54,8 @@ public class Item {
         sb.append(",");
         sb.append(Name.trim());
         sb.append(",");
+        sb.append(SessionId.toString());
+        sb.append(",");
         sb.append(String.valueOf(BestPrice).trim());
         sb.append(",");
         sb.append(String.valueOf(ListActive).trim());
@@ -59,11 +68,11 @@ public class Item {
 
     public static Item fromString(String itemString) throws SQLException, ClassNotFoundException {
         final String [] partStrings = itemString.split(",");
-        final ItemBuilder ib = new ItemBuilder(Integer.parseInt(partStrings[0]), partStrings[1]).bestPrice(Float.parseFloat(partStrings[2])).listActive(Boolean.parseBoolean(partStrings[3]));
-        if (partStrings.length >= 6) {
-            ib.store(new Store.StoreBuilder(partStrings[4], Integer.parseInt(partStrings[5])).build());
-        } else if (partStrings.length >= 5) {
-            ib.store(new Store.StoreBuilder(partStrings[4]).build());
+        final ItemBuilder ib = new ItemBuilder(Integer.parseInt(partStrings[0]), partStrings[1], UUID.fromString(partStrings[2])).bestPrice(Float.parseFloat(partStrings[3])).listActive(Boolean.parseBoolean(partStrings[4]));
+        if (partStrings.length >= 7) {
+            ib.store(new Store.StoreBuilder(partStrings[5], Integer.parseInt(partStrings[6])).build());
+        } else if (partStrings.length >= 6) {
+            ib.store(new Store.StoreBuilder(partStrings[5]).build());
         }
         return ib.build();
     }
@@ -75,10 +84,12 @@ public class Item {
         private boolean ListActive;
         private boolean LibraryActive;
         private float BestPrice;
+        private UUID SessionId;
 
-        public ItemBuilder(int id, String name){
+        public ItemBuilder(int id, String name, UUID sId){
             Name = name;
             Id = id;
+            SessionId = sId;
         }
 
         public ItemBuilder(){
@@ -119,6 +130,7 @@ public class Item {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             Id = rs.getInt("ItemId");
+                            SessionId = UUID.fromString(rs.getString("SessionId"));
                             ListActive = true;
                             LibraryActive = true;
                         }
@@ -140,6 +152,7 @@ public class Item {
                         try (final ResultSet rs = stmt.executeQuery()) {
                             while (rs.next()) {
                                 Name = rs.getString("ItemName");
+                                SessionId = UUID.fromString(rs.getString("SessionId"));
                                 BestPrice = rs.getFloat("BestPrice");
                                 ListActive = rs.getBoolean("ListActive");
                                 LibraryActive = rs.getBoolean("LibraryActive");
@@ -154,6 +167,7 @@ public class Item {
                         try (final ResultSet rs = stmt.executeQuery()) {
                             while (rs.next()) {
                                 Id = rs.getInt("ItemId");
+                                SessionId = UUID.fromString(rs.getString("SessionId"));
                                 BestPrice = rs.getFloat("BestPrice");
                                 ListActive = rs.getBoolean("ListActive");
                                 LibraryActive = rs.getBoolean("LibraryActive");
@@ -171,15 +185,14 @@ public class Item {
             }
         }
 
-        @Override
-        public List<ItemBuilder> readAll(boolean fromLibrary) {
+        public List<ItemBuilder> readAll(boolean fromLibrary, UUID sId) {
             final List<ItemBuilder> returnList = new ArrayList<>();
             try (final database db = new database()) {
                 if(!fromLibrary) {
-                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getAllItemsFromList())) {
+                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getAllItemsFromListBySessionId(sId))) {
                         try(final ResultSet rs = stmt.executeQuery()) {
                             while (rs.next()) {
-                                returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
+                                returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName"), UUID.fromString(rs.getString("SessionId"))).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
                             }
                         }
                     }
@@ -187,7 +200,7 @@ public class Item {
                     try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getAllItemsFromLibrary)) {
                         try(final ResultSet rs = stmt.executeQuery()) {
                             while (rs.next()) {
-                                returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")));
+                                returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName"), UUID.fromString(rs.getString("SessionId"))));
                             }
                         }
                     }
@@ -206,7 +219,7 @@ public class Item {
                 try (final PreparedStatement stmt = db.selectTableQuery(itemQueries.getLibraryItemsWithCharacters(itemNameSearchString))) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
-                            returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")));
+                            returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName"), UUID.fromString(rs.getString("SessionId"))));
                         }
                     }
                 }
@@ -274,15 +287,15 @@ public class Item {
             return this;
         }
 
-        public List<ItemBuilder> reAdd(String [] itemIds) {
+        public List<ItemBuilder> reAdd(String [] itemIds, UUID sId) {
             final List<ItemBuilder> returnList = new ArrayList<>();
             try (final database db = new database()) {
                 if(itemIds.length != 0) {
                     db.updateTableQuery(itemQueries.reAddItemsByIds(itemIds));
-                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getItemsByIds(itemIds))) {
+                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getItemsByIds(itemIds, sId))) {
                         try(final ResultSet rs = stmt.executeQuery()) {
                             while (rs.next()) {
-                                returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
+                                returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName"), UUID.fromString(rs.getString("SessionId"))).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
                             }
                         }
                     }

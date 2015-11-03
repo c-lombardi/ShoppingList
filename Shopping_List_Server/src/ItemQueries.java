@@ -1,3 +1,5 @@
+import java.util.UUID;
+
 /**
  * Created by Christopher on 9/2/2015.
  */
@@ -15,13 +17,13 @@ public class itemQueries {
     }
     public static final String addItem(Item item) {
         if(item.getStore() != null) {
-            return String.format("INSERT INTO Items (ItemId, ItemName, BestPrice, ListActive, LibraryActive, StoreId) " +
-                    "VALUES (nextval('Item_Seq'), '%s', %f, %b, %b, (SELECT StoreId FROM Stores WHERE StoreName = '%s')) " +
-                    "RETURNING ItemId, ItemName, BestPrice, StoreId", item.getName(), item.getBestPrice(), true, true, item.getStore().getName());
+            return String.format("INSERT INTO Items (ItemId, ItemName, SessionId, BestPrice, ListActive, LibraryActive, StoreId) " +
+                    "VALUES (nextval('Item_Seq'), '%s', '%s', %f, %b, %b, (SELECT StoreId FROM Stores WHERE StoreName = '%s')) " +
+                    "RETURNING ItemId, ItemName, BestPrice, StoreId", item.getName(), item.getSessionId(), item.getBestPrice(), true, true, item.getStore().getName());
         } else {
-            return String.format("INSERT INTO Items (ItemId, ItemName, BestPrice, ListActive, LibraryActive) " +
+            return String.format("INSERT INTO Items (ItemId, ItemName, SessionId BestPrice, ListActive, LibraryActive) " +
                     "VALUES (nextval('Item_Seq'), '%s', %f, %b, %b) " +
-                    "RETURNING ItemId, ItemName, BestPrice", item.getName(), item.getBestPrice(), true, true);
+                    "RETURNING ItemId, ItemName, BestPrice", item.getName(), item.getSessionId(), item.getBestPrice(), true, true);
         }
     }
     public static final String addStoreToItem(int itemId, int storeId) {
@@ -72,11 +74,11 @@ public class itemQueries {
                         "SET (ListActive) = (%b) WHERE ItemName = '%s'",
                 true, newItem.getName());
     }
-    public static final String getAllItemsFromList() {
-        return String.format("SELECT Items.ItemId, Items.ItemName, Items.BestPrice, Items.ListActive, Items.LibraryActive, Stores.StoreId, Stores.StoreName " +
+    public static final String getAllItemsFromListBySessionId(UUID sId) {
+        return String.format("SELECT Items.ItemId, Items.ItemName, Items.SessionId, Items.BestPrice, Items.ListActive, Items.LibraryActive, Stores.StoreId, Stores.StoreName " +
                 "FROM Items " +
                 "LEFT JOIN Stores ON Items.StoreId = Stores.StoreId " +
-                "WHERE Items.ListActive = TRUE");
+                "WHERE Items.ListActive = TRUE AND Items.SessionId = '%s'");
     }
     public static final String getAllItemsFromLibrary = "SELECT * " +
             "FROM Items " +
@@ -114,8 +116,8 @@ public class itemQueries {
         return null;
     }
 
-    public static final String getItemsByIds(String [] itemIds) {
-        StringBuilder queryStringBuilder = new StringBuilder(getAllItemsFromList());
+    public static final String getItemsByIds(String [] itemIds, UUID sId) {
+        StringBuilder queryStringBuilder = new StringBuilder(getAllItemsFromListBySessionId(sId));
         queryStringBuilder.append(" AND ");
         if(itemIds.length > 0) {
             for (int i = 0; i < itemIds.length; i++) {

@@ -110,7 +110,6 @@ public class Store {
             }
         }
 
-        @Override
         public List<StoreBuilder> readAll(boolean fromLibrary) {
             final List<StoreBuilder> returnList = new ArrayList<>();
             try (final database db = new database()) {

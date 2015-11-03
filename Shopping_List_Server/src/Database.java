@@ -16,17 +16,14 @@ public class database implements AutoCloseable {
     public database() throws ClassNotFoundException, SQLException {
         Class.forName("org.postgresql.Driver");
         try {
-            /*db = DriverManager.getConnection(url, username, password);
-            createDatabase();
             db = DriverManager.getConnection(dbUrl, username, password);
-            createTables();*/
         }
         catch (Exception ex)
         {
-            //db may exist
-        }
-        finally {
+            db = DriverManager.getConnection(url, username, password);
+            createDatabase();
             db = DriverManager.getConnection(dbUrl, username, password);
+            createTables();
         }
     }
     private void createDatabase() throws SQLException {
@@ -35,11 +32,23 @@ public class database implements AutoCloseable {
         } catch (Exception ex){}
     }
     private void createTables() throws SQLException {
+        createSessionsTable();
+        createSessionDevicesTable();
         createStoresTable();
         createItemsTable();
     }
+    private void createSessionsTable() throws SQLException {
+        try(PreparedStatement stmt = db.prepareStatement(databaseQueries.CREATE_SESSION)) {
+            stmt.executeUpdate();
+        } catch (Exception ex){}
+    }
+    private void createSessionDevicesTable() throws SQLException {
+        try (PreparedStatement stmt = db.prepareStatement(databaseQueries.CREATE_SESSION_DEVICE)) {
+            stmt.executeUpdate();
+        } catch (Exception ex){}
+    }
     private void createStoresTable() throws SQLException {
-        try(PreparedStatement stmt = db.prepareStatement(databaseQueries.CREATE_STORE);) {
+        try(PreparedStatement stmt = db.prepareStatement(databaseQueries.CREATE_STORE)) {
             stmt.executeUpdate();
         } catch (Exception ex){}
     }

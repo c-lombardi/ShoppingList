@@ -1,6 +1,7 @@
 package com.example.christopher.shopping_list;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 /**
  * Created by Christopher on 9/1/2015.
@@ -12,6 +13,7 @@ public class Item implements Comparable<Item>{
     private final boolean ListActive;
     private final boolean LibraryActive;
     private final float BestPrice;
+    private final UUID SessionId;
 
     private Item(ItemBuilder itemBuilder) {
         Id = itemBuilder.Id;
@@ -20,10 +22,15 @@ public class Item implements Comparable<Item>{
         ListActive = itemBuilder.ListActive;
         LibraryActive = itemBuilder.LibraryActive;
         BestPrice = itemBuilder.BestPrice;
+        SessionId = itemBuilder.SessionId;
     }
 
     public float getBestPrice() {
         return BestPrice;
+    }
+
+    public UUID getSessionId() {
+        return SessionId;
     }
 
     public int getId() {
@@ -63,6 +70,8 @@ public class Item implements Comparable<Item>{
         sb.append(",");
         sb.append(Name.trim());
         sb.append(",");
+        sb.append(SessionId.toString());
+        sb.append(",");
         sb.append(String.valueOf(BestPrice).trim());
         sb.append(",");
         sb.append(String.valueOf(ListActive).trim());
@@ -75,11 +84,11 @@ public class Item implements Comparable<Item>{
 
     public static Item fromString(String itemString) throws SQLException, ClassNotFoundException {
         final String [] partStrings = itemString.split(",");
-        final ItemBuilder ib = new ItemBuilder(Integer.parseInt(partStrings[0]), partStrings[1]).bestPrice(Float.parseFloat(partStrings[2])).listActive(Boolean.parseBoolean(partStrings[3]));
-        if (partStrings.length >= 6) {
-            ib.store(new Store.StoreBuilder(partStrings[4], Integer.parseInt(partStrings[5])).build());
-        } else if (partStrings.length >= 5) {
-            ib.store(new Store.StoreBuilder(partStrings[4]).build());
+        final ItemBuilder ib = new ItemBuilder(Integer.parseInt(partStrings[0]), partStrings[1], UUID.fromString(partStrings[2])).bestPrice(Float.parseFloat(partStrings[3])).listActive(Boolean.parseBoolean(partStrings[4]));
+        if (partStrings.length >= 7) {
+            ib.store(new Store.StoreBuilder(partStrings[5], Integer.parseInt(partStrings[6])).build());
+        } else if (partStrings.length >= 6) {
+            ib.store(new Store.StoreBuilder(partStrings[5]).build());
         }
         return ib.build();
     }
@@ -96,20 +105,18 @@ public class Item implements Comparable<Item>{
         private boolean ListActive = true;
         private boolean LibraryActive = true;
         private float BestPrice;
+        private final UUID SessionId;
 
-        public ItemBuilder(int id, String name){
+        public ItemBuilder(int id, String name, UUID sId){
             Name = name;
             Id = id;
+            SessionId = sId;
         }
 
-        public ItemBuilder(String name){
-            Name = name;
-            Id = 0;
-        }
-
-        public ItemBuilder(int id) {
+        public ItemBuilder(int id, UUID sId) {
             Name = null;
             Id = id;
+            SessionId = sId;
         }
 
         public ItemBuilder bestPrice(float bestPrice){

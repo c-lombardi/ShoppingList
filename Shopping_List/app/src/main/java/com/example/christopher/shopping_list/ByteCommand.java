@@ -11,5 +11,9 @@ public enum ByteCommand {
     getLibrary,
     reAddItems,
     removeItemsFromList,
-    getLibraryItemsThatContain
+    getLibraryItemsThatContain,
+    createSession,
+    authorizeSession,
+    grantAccessToSession,
+    getSessionsForDevice
 }

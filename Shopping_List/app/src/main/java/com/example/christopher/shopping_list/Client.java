@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Christopher on 9/10/2015.
@@ -100,7 +101,7 @@ public class Client extends AsyncTask<String, Client, String> {
                         out.flush();
                         String line;
                         while ((line = in.readLine()) != null) {
-                            shoppingList.AddToItemArrayList(new Item.ItemBuilder(Integer.parseInt(line), item.getName()).bestPrice(item.getBestPrice()).store(item.getStore()).build());
+                            shoppingList.AddToItemArrayList(new Item.ItemBuilder(Integer.parseInt(line), item.getName(), item.getSessionId()).bestPrice(item.getBestPrice()).store(item.getStore()).build());
                         }
                         break;
                     }
@@ -116,7 +117,7 @@ public class Client extends AsyncTask<String, Client, String> {
                         String line;
                         while ((line = in.readLine()) != null) {
                             String[] itemParts = line.split(",");
-                            shoppingList.AddToLibraryItemArrayList(new Item.ItemBuilder(Integer.parseInt(itemParts[0]), itemParts[1]).build());
+                            shoppingList.AddToLibraryItemArrayList(new Item.ItemBuilder(Integer.parseInt(itemParts[0]), itemParts[1], UUID.fromString(itemParts[2])).build());
                         }
                         break;
                     }
@@ -143,8 +144,20 @@ public class Client extends AsyncTask<String, Client, String> {
                         String line;
                         while ((line = in.readLine()) != null) {
                             String[] itemParts = line.split(",");
-                            shoppingList.AddToLibraryItemArrayList(new Item.ItemBuilder(Integer.parseInt(itemParts[0]), itemParts[1]).build());
+                            shoppingList.AddToLibraryItemArrayList(new Item.ItemBuilder(Integer.parseInt(itemParts[0]), itemParts[1], UUID.fromString(itemParts[2])).build());
                         }
+                    }
+                    case createSession: {
+                        break;
+                    }
+                    case authorizeSession: {
+                        break;
+                    }
+                    case grantAccessToSession: {
+                        break;
+                    }
+                    case getSessionsForDevice: {
+                        break;
                     }
                 }
                 in.close();
