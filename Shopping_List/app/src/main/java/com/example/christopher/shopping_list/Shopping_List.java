@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static java.util.Collections.*;
 
@@ -107,7 +108,7 @@ public class Shopping_List extends AppCompatActivity {
                                         if (item.getName().equals(itemName)) {
                                             String itemName = itemNameView.getText().toString().trim();
                                             if (!itemName.isEmpty()) {
-                                                final Item.ItemBuilder ib = new Item.ItemBuilder(item.getId(), itemName);
+                                                final Item.ItemBuilder ib = new Item.ItemBuilder(item.getId(), itemName, item.getSessionId());
                                                 final String bestPriceString = bestPriceView.getText().toString().trim();
                                                 if (!bestPriceString.isEmpty()) {
                                                     ib.bestPrice(Float.parseFloat(bestPriceString));
@@ -306,7 +307,7 @@ public class Shopping_List extends AppCompatActivity {
             Map.Entry itemNameAndColor = (Map.Entry)it.next();
             if(Integer.parseInt(itemNameAndColor.getValue().toString()) == Color.GREEN) {
                 final String name = itemNameAndColor.getKey().toString().trim();
-                final Item localItem = new Item.ItemBuilder(name).build();
+                final Item localItem = new Item.ItemBuilder(0, name, null).build();
                 final int indexOf = itemArrayList.indexOf(localItem);
                 final Item foundItem = itemArrayList.get(indexOf);
                 foundItems.add(foundItem);
@@ -470,13 +471,14 @@ public class Shopping_List extends AppCompatActivity {
         final ListView itemLibraryListView = (ListView) inflatedView.findViewById(R.id.libraryItemsListView);
         itemLibraryListView.setAdapter(libraryAdapter);
         itemLibraryListView.setEmptyView(inflatedView.findViewById(R.id.createEmpty));
+        final UUID sessionId = UUID.fromString(getPreferences(MODE_PRIVATE).getString("SessionId", "null"));
         new Client.ClientBuilder(ByteCommand.getLibrary, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).build().execute();
         itemLibraryListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 TextView itemNameTextView = (TextView) view.findViewById(R.id.itemName);
                 String chosenItemName = itemNameTextView.getText().toString();
-                Item foundItem = new Item.ItemBuilder(Integer.parseInt(view.getTag().toString()), chosenItemName).build();
+                Item foundItem = new Item.ItemBuilder(Integer.parseInt(view.getTag().toString()), chosenItemName, sessionId).build();
                 if(itemLibraryChosenHashSet.contains(foundItem)){
                     view.setBackgroundColor(Color.TRANSPARENT);
                     itemLibraryChosenHashSet.remove(foundItem);
@@ -509,7 +511,7 @@ public class Shopping_List extends AppCompatActivity {
                     else {
                         final String itemName = itemNameView.getText().toString().trim();
                         if (!itemName.isEmpty()) {
-                            final Item.ItemBuilder ib = new Item.ItemBuilder(itemName);
+                            final Item.ItemBuilder ib = new Item.ItemBuilder(0, itemName, sessionId);
                             new Client.ClientBuilder(ByteCommand.addItem, getPreferences(MODE_PRIVATE).getString("IpAddress", "127.0.0.1")).Item(ib.build()).build().execute();
                         }
                     }
@@ -592,6 +594,15 @@ public class Shopping_List extends AppCompatActivity {
         alert.show();
     }
     //END Configure IP Section
+
+    //START Configure SessionId Section
+    public void ConfigureSessionId(UUID sessionId)
+    {
+        final SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+        editor.putString("SessionId", sessionId.toString().trim());
+        editor.commit();
+    }
+    //END Configure SessionId Section
 
     //START Generic Helpers
     private static float round(float d, int decimalPlace) {
