@@ -4,7 +4,7 @@
 
 import java.sql.*;
 
-public class database implements AutoCloseable {
+public class Database implements AutoCloseable {
     Connection db = null;
     static final String databaseName = "shopping_list_database";
     static final String url = "jdbc:postgresql://localhost:5432/";
@@ -13,20 +13,17 @@ public class database implements AutoCloseable {
     static final String password = "password";
     static final String createDatabase = "CREATE DATABASE " + databaseName;
 
-    public database() throws ClassNotFoundException, SQLException {
+    public Database() throws ClassNotFoundException, SQLException {
         Class.forName("org.postgresql.Driver");
         try {
-            /*db = DriverManager.getConnection(url, username, password);
-            createDatabase();
             db = DriverManager.getConnection(dbUrl, username, password);
-            createTables();*/
         }
         catch (Exception ex)
         {
-            //db may exist
-        }
-        finally {
+            db = DriverManager.getConnection(url, username, password);
+            createDatabase();
             db = DriverManager.getConnection(dbUrl, username, password);
+            createTables();
         }
     }
     private void createDatabase() throws SQLException {
@@ -39,12 +36,12 @@ public class database implements AutoCloseable {
         createItemsTable();
     }
     private void createStoresTable() throws SQLException {
-        try(PreparedStatement stmt = db.prepareStatement(databaseQueries.CREATE_STORE);) {
+        try(PreparedStatement stmt = db.prepareStatement(DatabaseQueries.CREATE_STORE);) {
             stmt.executeUpdate();
         } catch (Exception ex){}
     }
     private void createItemsTable() throws SQLException {
-        try (PreparedStatement stmt = db.prepareStatement(databaseQueries.CREATE_ITEM)) {
+        try (PreparedStatement stmt = db.prepareStatement(DatabaseQueries.CREATE_ITEM)) {
             stmt.executeUpdate();
         } catch (Exception ex){}
     }

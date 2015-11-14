@@ -1,7 +1,7 @@
 /**
  * Created by Christopher on 9/2/2015.
  */
-public class databaseQueries {
+public class DatabaseQueries {
     public static final String CREATE_STORE =  "DROP SEQUENCE IF EXISTS Store_Seq; " +
             "CREATE SEQUENCE Store_Seq START 1; " +
             "CREATE TABLE IF NOT EXISTS Stores " +

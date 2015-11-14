@@ -1,7 +1,7 @@
 /**
  * Created by Christopher on 9/2/2015.
  */
-public class itemQueries {
+public class ItemQueries {
     public static final String getItemById(int itemId) {
         return String.format("SELECT * " +
                 "FROM Items " +

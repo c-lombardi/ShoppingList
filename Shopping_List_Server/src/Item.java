@@ -111,11 +111,11 @@ public class Item {
 
         @Override
         public ItemBuilder create() {
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 if(Store != null) {
                     Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
                 }
-                try (final PreparedStatement stmt = db.selectTableQuery(itemQueries.addItem(this.build()))) {
+                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.addItem(this.build()))) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             Id = rs.getInt("ItemId");
@@ -134,9 +134,9 @@ public class Item {
 
         @Override
         public ItemBuilder read() {
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 if(Id != 0) {
-                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getItemById(Id))) {
+                    try(final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemById(Id))) {
                         try (final ResultSet rs = stmt.executeQuery()) {
                             while (rs.next()) {
                                 Name = rs.getString("ItemName");
@@ -150,7 +150,7 @@ public class Item {
                         }
                     }
                 } else if(Name != null) {
-                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getItemByName(Name))) {
+                    try(final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemByName(Name))) {
                         try (final ResultSet rs = stmt.executeQuery()) {
                             while (rs.next()) {
                                 Id = rs.getInt("ItemId");
@@ -174,9 +174,9 @@ public class Item {
         @Override
         public List<ItemBuilder> readAll(boolean fromLibrary) {
             final List<ItemBuilder> returnList = new ArrayList<>();
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 if(!fromLibrary) {
-                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getAllItemsFromList())) {
+                    try(final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromList())) {
                         try(final ResultSet rs = stmt.executeQuery()) {
                             while (rs.next()) {
                                 returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
@@ -184,7 +184,7 @@ public class Item {
                         }
                     }
                 } else {
-                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getAllItemsFromLibrary)) {
+                    try(final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromLibrary)) {
                         try(final ResultSet rs = stmt.executeQuery()) {
                             while (rs.next()) {
                                 returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")));
@@ -202,8 +202,8 @@ public class Item {
 
         public List<ItemBuilder> getLibraryItemsThatContain(String itemNameSearchString) {
             final List<ItemBuilder> returnList = new ArrayList<>();
-            try (final database db = new database()) {
-                try (final PreparedStatement stmt = db.selectTableQuery(itemQueries.getLibraryItemsWithCharacters(itemNameSearchString))) {
+            try (final Database db = new Database()) {
+                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getLibraryItemsWithCharacters(itemNameSearchString))) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")));
@@ -220,22 +220,22 @@ public class Item {
 
         @Override
         public ItemBuilder update(boolean justFlipListActive) {
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 if (Name != null) {
                     if(Store != null) {
                         Store = new Store.StoreBuilder(Store.getName(), Store.getId()).create().build();
                     }
                     if(!justFlipListActive) {
                         if (Id != 0) {
-                            db.updateTableQuery(itemQueries.updateItemById(this.build()));
+                            db.updateTableQuery(ItemQueries.updateItemById(this.build()));
                         } else {
-                            db.updateTableQuery(itemQueries.updateItemByName(this.build()));
+                            db.updateTableQuery(ItemQueries.updateItemByName(this.build()));
                         }
                     } else {
                         if (Id != 0) {
-                            db.updateTableQuery(itemQueries.makeActiveById(this.build()));
+                            db.updateTableQuery(ItemQueries.makeActiveById(this.build()));
                         } else {
-                            db.updateTableQuery(itemQueries.makeActiveByName(this.build()));
+                            db.updateTableQuery(ItemQueries.makeActiveByName(this.build()));
                         }
                     }
                 }
@@ -248,12 +248,12 @@ public class Item {
 
         @Override
         public ItemBuilder delete(boolean deleteFromLibrary) {
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 if (Id != 0) {
                     if(!deleteFromLibrary) {
-                        db.updateTableQuery(itemQueries.removeItemFromList(Id));
+                        db.updateTableQuery(ItemQueries.removeItemFromList(Id));
                     } else {
-                        db.updateTableQuery(itemQueries.removeItemFromLibrary(Id));
+                        db.updateTableQuery(ItemQueries.removeItemFromLibrary(Id));
                     }
                 }
             } catch (Exception ex) {
@@ -264,9 +264,9 @@ public class Item {
         }
 
         public ItemBuilder attachStore(){
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 if(Store.getId() != 0) {
-                    db.updateTableQuery(itemQueries.addStoreToItem(Id, Store.getId()));
+                    db.updateTableQuery(ItemQueries.addStoreToItem(Id, Store.getId()));
                 }
             } catch(Exception ex) {
 
@@ -276,10 +276,10 @@ public class Item {
 
         public List<ItemBuilder> reAdd(String [] itemIds) {
             final List<ItemBuilder> returnList = new ArrayList<>();
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 if(itemIds.length != 0) {
-                    db.updateTableQuery(itemQueries.reAddItemsByIds(itemIds));
-                    try(final PreparedStatement stmt = db.selectTableQuery(itemQueries.getItemsByIds(itemIds))) {
+                    db.updateTableQuery(ItemQueries.reAddItemsByIds(itemIds));
+                    try(final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemsByIds(itemIds))) {
                         try(final ResultSet rs = stmt.executeQuery()) {
                             while (rs.next()) {
                                 returnList.add(new ItemBuilder(rs.getInt("ItemId"), rs.getString("ItemName")).bestPrice(rs.getFloat("BestPrice")).store(new Store.StoreBuilder(rs.getString("StoreName"), rs.getInt("StoreId")).build()));
@@ -296,9 +296,9 @@ public class Item {
         }
 
         public void removeItems(String [] itemIds) {
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 if(itemIds.length != 0) {
-                    db.updateTableQuery(itemQueries.removeItemsByIds(itemIds));
+                    db.updateTableQuery(ItemQueries.removeItemsByIds(itemIds));
                 }
             } catch (Exception ex) {
 

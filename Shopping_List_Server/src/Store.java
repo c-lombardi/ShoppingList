@@ -68,7 +68,7 @@ public class Store {
 
         @Override
         public StoreBuilder create() {
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 try(final PreparedStatement stmt = db.selectTableQuery(StoreQueries.addStore(Name))) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
@@ -85,7 +85,7 @@ public class Store {
 
         @Override
         public StoreBuilder read() {
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 if(Id != 0) {
                     try(final PreparedStatement stmt = db.selectTableQuery(StoreQueries.getStoreById(Id))) {
                         try (final ResultSet rs = stmt.executeQuery()) {
@@ -113,7 +113,7 @@ public class Store {
         @Override
         public List<StoreBuilder> readAll(boolean fromLibrary) {
             final List<StoreBuilder> returnList = new ArrayList<>();
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 try (final PreparedStatement stmt = db.selectTableQuery(StoreQueries.getCountFromStores())) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
@@ -128,7 +128,7 @@ public class Store {
 
         @Override
         public StoreBuilder update(boolean justFlipListActive) {
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 if (Name != null) {
                     if (Id != 0) {
                         db.updateTableQuery(StoreQueries.updateStore(this.build()));
@@ -145,7 +145,7 @@ public class Store {
 
         @Override
         public StoreBuilder delete(boolean deleteFromLibrary) {
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 if (Id != 0) {
                     db.updateTableQuery(StoreQueries.removeStore(Id));
                 } else if (Name != null) {
