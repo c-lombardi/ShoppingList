@@ -1,68 +1,120 @@
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.Random;
 import java.util.UUID;
 
 /**
  * Created by Christopher on 10/26/2015.
  */
-public class Session {
+public class Session implements java.io.Serializable {
     private UUID SessionId;
-    private String SessionName;
-
-    private Session (SessionBuilder sb) {
-        SessionId = sb.SessionId;
-        SessionName = sb.SessionName;
-    }
+    private String SessionPhoneNumber;
+    private String SessionAuthCode;
 
     public UUID getSessionId() {
         return SessionId;
     }
 
-    public String getSessionName() {
-        return SessionName;
+    public void setSessionId(final UUID sId) {
+        SessionId = sId;
     }
 
-    @Override
-    public String toString(){
-        final StringBuilder sb = new StringBuilder();
-        sb.append(String.valueOf(SessionId).trim());
-        sb.append(",");
-        sb.append(SessionName.trim());
-        return sb.toString();
+    public String getSessionPhoneNumber() {
+        return SessionPhoneNumber;
     }
 
-    public static Session fromString(String sessionString) throws SQLException, ClassNotFoundException {
-        final String [] partStrings = sessionString.split(",");
-        final SessionBuilder ib = new SessionBuilder(UUID.fromString(partStrings[0]), partStrings[1]);
-        return ib.build();
+    public void setSessionPhoneNumber(final String sessionPhoneNumber) {
+        SessionPhoneNumber = sessionPhoneNumber;
     }
 
-    public static class SessionBuilder {
-        private UUID SessionId;
-        private String SessionName;
+    public String getSessionAuthCode() {
+        return SessionAuthCode;
+    }
 
-        public SessionBuilder(UUID sid, String sn) {
-            SessionId = sid;
-            SessionName = sn;
+    public void setSessionAuthCode(final String sac) {
+        if ((sac == null || sac == "")) {
+            SessionAuthCode = new SessionAuthCodeGenerator().Generate();
+            //updateAuthCode();
+        } else {
+            SessionAuthCode = sac;
         }
+    }
 
-        public SessionBuilder create() {
-            try (final database db = new database()) {
-                try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.createSession(SessionName)))
-                {
-                    try (final ResultSet rs = stmt.executeQuery()){
-                        SessionId = UUID.fromString(rs.getString("SessionId"));
+    public boolean CheckSessionForAuthentication() {
+        try (final database db = new database()) {
+            try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.getSessionPhoneNumberById(SessionId))) {
+                try (final ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        String queriedPhoneNumber = rs.getString("SessionPhoneNumber");
+                        boolean result = queriedPhoneNumber.equals(SessionPhoneNumber);
+                        return result;
+                    }
+                    return false;
+                }
+            }
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    public void updateAuthCode() {
+        try (final database db = new database()) {
+            db.updateTableQuery(sessionQueries.setSessionAuthCodeById(SessionId, SessionAuthCode));
+        } catch (Exception ex) {
+        }
+    }
+
+    public void create() {
+        try (final database db = new database()) {
+            try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.createSession(SessionPhoneNumber, SessionAuthCode))) {
+                try (final ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        String result = rs.getString("SessionId");
+                        setSessionId(UUID.fromString(result));
                     }
                 }
-            } catch (Exception ex) {
-
             }
-            return this;
+        } catch (Exception ex) {
+            try (final database db = new database()) {
+                try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.getSessionIdByPhoneNumberAndAuthCode(SessionPhoneNumber, SessionAuthCode))) {
+                    try (final ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            String result = rs.getString("SessionId");
+                            setSessionId(UUID.fromString(result));
+                        }
+                    }
+                }
+            } catch (Exception ex1) {
+                System.out.println(ex1);
+            }
+        } finally {
+            clearAuthCodeAndPhoneNumber();
+        }
+    }
+
+    private void clearAuthCodeAndPhoneNumber() {
+        SessionPhoneNumber = "";
+        SessionAuthCode = "";
+    }
+
+    public static class SessionAuthCodeGenerator {
+        private static final int min = 0;
+        private static final int max = 9;
+        private static final int authCodeLength = 6;
+        private Random random;
+        private StringBuilder authCodeBuilder;
+
+        private String GenerateInt() {
+            random = new Random();
+            return String.valueOf(random.nextInt(max - min) + min);
         }
 
-        public Session build() {
-            return new Session(this);
+        public String Generate() {
+            authCodeBuilder = new StringBuilder();
+            for (int i = 0; i < authCodeLength; i++) {
+                authCodeBuilder.append(GenerateInt());
+            }
+            return authCodeBuilder.toString();
         }
     }
 }

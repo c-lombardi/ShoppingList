@@ -3,7 +3,10 @@
  */
 public interface CRUD<T> {
     T create();
+
     T read();
-    T update(boolean justFlipListActive);
-    T delete(boolean deleteFromLibrary);
+
+    T update(final boolean justFlipListActive);
+
+    T delete(final boolean deleteFromLibrary);
 }

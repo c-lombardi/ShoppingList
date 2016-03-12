@@ -5,26 +5,27 @@ import java.util.UUID;
  */
 public class sessionQueries {
 
-    public static String createSession(String sName) {
-        return String.format("INSERT INTO Sessions (SessionName) " +
-                "VALUES ('%s') " +
-                "RETURNING SessionId;", sName);
+    public static String createSession(final String sessionPhoneNumber, final String sessionAuthCode) {
+        return String.format("INSERT INTO Sessions (SessionPhoneNumber, SessionAuthCode) " +
+                "VALUES ('%s', '%s') " +
+                "RETURNING SessionId;", sessionPhoneNumber, sessionAuthCode);
     }
 
-    public static String addPinToSession(UUID sId, String pin) {
+    public static String setSessionAuthCodeById(final UUID sId, final String sessionAuthCode) {
         return String.format("UPDATE Sessions " +
-                "SET SessionPin = '%s' " +
-                "WHERE SessionId = '%s';", pin, sId.toString());
+                "SET SessionAuthCode = '%s' " +
+                "WHERE SessionId = '%s';", sessionAuthCode, sId);
     }
 
-    public static String getSessionById(UUID sId) {
-        return String.format("SELECT * " +
+    public static String getSessionPhoneNumberById(final UUID sId) {
+        return String.format("SELECT SessionPhoneNumber " +
                 "FROM Sessions " +
                 "WHERE SessionId = '%s';", sId.toString());
     }
 
-    public static String removeSessionById(UUID sId) {
-        return String.format("DELETE FROM Sessions " +
-                "WHERE SessionId = '%s';", sId.toString());
+    public static String getSessionIdByPhoneNumberAndAuthCode(final String sessionPhoneNumber, final String authCode) {
+        return String.format("SELECT SessionId " +
+                "FROM Sessions " +
+                "WHERE SessionPhoneNumber = '%s' AND SessionAuthCode = '%s';", sessionPhoneNumber, authCode);
     }
 }

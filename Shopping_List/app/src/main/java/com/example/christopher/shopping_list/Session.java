@@ -5,42 +5,32 @@ import java.util.UUID;
 /**
  * Created by Christopher on 10/26/2015.
  */
-public class Session {
+public class Session implements java.io.Serializable {
     private UUID SessionId;
-    private String SessionName;
-    private String SessionPin;
-
-    private Session (SessionBuilder sb) {
-        SessionId = sb.SessionId;
-        SessionName = sb.SessionName;
-        SessionPin = sb.SessionPin;
-    }
+    private String SessionPhoneNumber;
+    private String SessionAuthCode;
 
     public UUID getSessionId() {
         return SessionId;
     }
 
-    public String getSessionName() {
-        return SessionName;
+    public void setSessionId(final UUID sId) {
+        SessionId = sId;
     }
 
-    public String getSessionPing() {
-        return SessionPin;
+    public String getSessionPhoneNumber() {
+        return SessionPhoneNumber;
     }
 
-    public static class SessionBuilder {
-        private final UUID SessionId;
-        private final String SessionName;
-        private final String SessionPin;
+    public void setSessionPhoneNumber(final String sessionPhoneNumber) {
+        SessionPhoneNumber = sessionPhoneNumber;
+    }
 
-        public SessionBuilder(UUID sid, String sn, String sp) {
-            SessionId = sid;
-            SessionName = sn;
-            SessionPin = sp;
-        }
+    public String getSessionAuthCode() {
+        return SessionAuthCode;
+    }
 
-        public Session build() {
-            return new Session(this);
-        }
+    public void setSessionAuthCode(final String sac) {
+        SessionAuthCode = sac;
     }
 }
