@@ -4,7 +4,7 @@ import java.util.UUID;
 /**
  * Created by Christopher on 9/2/2015.
  */
-public class itemQueries {
+public class ItemQueries {
     public static final String getAllItemsFromLibrary = "SELECT * " +
             "FROM Items " +
             "WHERE LibraryActive = TRUE AND ListActive = FALSE";

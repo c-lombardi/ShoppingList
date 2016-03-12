@@ -41,7 +41,7 @@ public class Session implements java.io.Serializable {
     }
 
     public boolean CheckSessionForAuthentication() {
-        try (final database db = new database()) {
+        try (final Database db = new Database()) {
             try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.getSessionPhoneNumberById(SessionId))) {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
@@ -58,14 +58,14 @@ public class Session implements java.io.Serializable {
     }
 
     public void updateAuthCode() {
-        try (final database db = new database()) {
+        try (final Database db = new Database()) {
             db.updateTableQuery(sessionQueries.setSessionAuthCodeById(SessionId, SessionAuthCode));
         } catch (Exception ex) {
         }
     }
 
     public void create() {
-        try (final database db = new database()) {
+        try (final Database db = new Database()) {
             try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.createSession(SessionPhoneNumber, SessionAuthCode))) {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
@@ -75,7 +75,7 @@ public class Session implements java.io.Serializable {
                 }
             }
         } catch (Exception ex) {
-            try (final database db = new database()) {
+            try (final Database db = new Database()) {
                 try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.getSessionIdByPhoneNumberAndAuthCode(SessionPhoneNumber, SessionAuthCode))) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         if (rs.next()) {

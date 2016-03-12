@@ -73,11 +73,11 @@ public class Item implements CRUD<Item> {
 
     @Override
     public Item create() {
-        try (final database db = new database()) {
+        try (final Database db = new Database()) {
             if (Store != null) {
                 Store = Store.create();
             }
-            try (final PreparedStatement stmt = db.selectTableQuery(itemQueries.addItem(this))) {
+            try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.addItem(this))) {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         Id = rs.getInt("ItemId");
@@ -94,9 +94,9 @@ public class Item implements CRUD<Item> {
 
     @Override
     public Item read() {
-        try (final database db = new database()) {
+        try (final Database db = new Database()) {
             if (Id != 0) {
-                try (final PreparedStatement stmt = db.selectTableQuery(itemQueries.getItemById(Id))) {
+                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemById(Id))) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             Name = rs.getString("ItemName");
@@ -109,7 +109,7 @@ public class Item implements CRUD<Item> {
                     }
                 }
             } else if (Name != null) {
-                try (final PreparedStatement stmt = db.selectTableQuery(itemQueries.getItemByName(Name))) {
+                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemByName(Name))) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             Id = rs.getInt("ItemId");
@@ -131,9 +131,9 @@ public class Item implements CRUD<Item> {
 
     public List<Item> readAll(final boolean fromLibrary, UUID sId) {
         final List<Item> returnList = new ArrayList<>();
-        try (final database db = new database()) {
+        try (final Database db = new Database()) {
             if (!fromLibrary) {
-                try (final PreparedStatement stmt = db.selectTableQuery(itemQueries.getAllItemsFromListBySessionId(sId))) {
+                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromListBySessionId(sId))) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             Store store = new Store();
@@ -144,7 +144,7 @@ public class Item implements CRUD<Item> {
                     }
                 }
             } else {
-                try (final PreparedStatement stmt = db.selectTableQuery(itemQueries.getAllItemsFromLibrary)) {
+                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromLibrary)) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), UUID.fromString(rs.getString("SessionId"))));
@@ -162,8 +162,8 @@ public class Item implements CRUD<Item> {
 
     public List<Item> getLibraryItemsThatContain(final String itemNameSearchString) {
         final List<Item> returnList = new ArrayList<>();
-        try (final database db = new database()) {
-            try (final PreparedStatement stmt = db.selectTableQuery(itemQueries.getLibraryItemsWithCharactersAndSessionId(itemNameSearchString, SessionId))) {
+        try (final Database db = new Database()) {
+            try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getLibraryItemsWithCharactersAndSessionId(itemNameSearchString, SessionId))) {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         Item foundItem = new Item();
@@ -183,22 +183,22 @@ public class Item implements CRUD<Item> {
 
     @Override
     public Item update(final boolean justFlipListActive) {
-        try (final database db = new database()) {
+        try (final Database db = new Database()) {
             if (Name != null) {
                 if (Store != null) {
                     Store = Store.create();
                 }
                 if (!justFlipListActive) {
                     if (Id != 0) {
-                        db.updateTableQuery(itemQueries.updateItemById(this));
+                        db.updateTableQuery(ItemQueries.updateItemById(this));
                     } else {
-                        db.updateTableQuery(itemQueries.updateItemByName(this));
+                        db.updateTableQuery(ItemQueries.updateItemByName(this));
                     }
                 } else {
                     if (Id != 0) {
-                        db.updateTableQuery(itemQueries.makeActiveById(this));
+                        db.updateTableQuery(ItemQueries.makeActiveById(this));
                     } else {
-                        db.updateTableQuery(itemQueries.makeActiveByName(this));
+                        db.updateTableQuery(ItemQueries.makeActiveByName(this));
                     }
                 }
             }
@@ -211,12 +211,12 @@ public class Item implements CRUD<Item> {
 
     @Override
     public Item delete(final boolean deleteFromLibrary) {
-        try (final database db = new database()) {
+        try (final Database db = new Database()) {
             if (Id != 0) {
                 if (!deleteFromLibrary) {
-                    db.updateTableQuery(itemQueries.removeItemFromList(Id));
+                    db.updateTableQuery(ItemQueries.removeItemFromList(Id));
                 } else {
-                    db.updateTableQuery(itemQueries.removeItemFromLibrary(Id));
+                    db.updateTableQuery(ItemQueries.removeItemFromLibrary(Id));
                 }
             }
         } catch (Exception ex) {
@@ -228,9 +228,9 @@ public class Item implements CRUD<Item> {
 
     public List<Item> reAdd(final List<Integer> itemIds, final UUID sId) {
         final List<Item> returnList = new ArrayList<>();
-        try (final database db = new database()) {
-            db.updateTableQuery(itemQueries.reAddItemsByIds(itemIds));
-            try (final PreparedStatement stmt = db.selectTableQuery(itemQueries.getItemsByIds(itemIds, sId))) {
+        try (final Database db = new Database()) {
+            db.updateTableQuery(ItemQueries.reAddItemsByIds(itemIds));
+            try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemsByIds(itemIds, sId))) {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         Store store = new Store();
@@ -248,8 +248,8 @@ public class Item implements CRUD<Item> {
     }
 
     public void removeItems(final List<Integer> itemIds) {
-        try (final database db = new database()) {
-            db.updateTableQuery(itemQueries.removeItemsByIds(itemIds));
+        try (final Database db = new Database()) {
+            db.updateTableQuery(ItemQueries.removeItemsByIds(itemIds));
         } catch (Exception ex) {
 
         }

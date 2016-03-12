@@ -1,7 +1,7 @@
 /**
  * Created by Christopher on 9/2/2015.
  */
-public class databaseQueries {
+public class DatabaseQueries {
     public static final String CREATE_SESSION = "DROP EXTENSION IF EXISTS \"uuid-ossp\"; " +
             "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"; " +
             "CREATE TABLE IF NOT EXISTS Sessions " +
