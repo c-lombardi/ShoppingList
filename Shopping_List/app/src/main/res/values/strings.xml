@@ -7,4 +7,8 @@
     <string name="remove_items">Remove Green Items</string>
     <string name="no_items">No Items Available</string>
     <string name="filter_results">Filter Results</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="Found">Found</string>
+    <string name="NotFound">Not Found</string>
 </resources>

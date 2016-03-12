@@ -1,37 +1,36 @@
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 
 /**
  * Created by Christopher on 9/2/2015.
  */
 public class Server implements Runnable {
+    private static final Object lock = new Object();
     private ServerSocket serverSocket = null;
     private Socket socket = null;
     private Thread thread = null;
     private DataInputStream streamIn = null;
-    private static final Object lock = new Object();
 
-    public Server(int port) {
-        try
-        {  System.out.println("Binding to port " + port + ", please wait  ...");
+    public Server(final int port) {
+        try {
+            System.out.println("Binding to port " + port + ", please wait  ...");
             serverSocket = new ServerSocket(port, 100, InetAddress.getLocalHost());
             start();
-        }
-        catch(IOException ioe)
-        {
-            System.out.println(ioe);
+        } catch (IOException ignored) {
         }
     }
 
     @Override
     public void run() {
-        while(thread != null) {
-            synchronized (lock)
-            {
-                try
-                {
+        while (thread != null) {
+            synchronized (lock) {
+                try {
                     System.out.println("waiting for a connection...");
                     socket = serverSocket.accept();
                     open();
@@ -45,78 +44,84 @@ public class Server implements Runnable {
                             while (in.ready()) {
                                 sb.append(in.readLine());
                             }
-                            //Get the command from the client
-                            final char commandCharFromClient = sb.toString().charAt(0);
-                            final int valueOfFirstChar = Character.getNumericValue(commandCharFromClient);
-                            final ByteCommand command = ByteCommand.values()[valueOfFirstChar];
-                            final String MessageFromClient;
-                            if (sb.toString().length() > 1){
-                                MessageFromClient = sb.toString().substring(2);
+                            final String message = sb.toString();
+                            final ObjectMapper objectMapper = new ObjectMapper();
+                            objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+                            final Message messageObject = objectMapper.readValue(message, Message.class);
+                            final Session session = messageObject.getSession();
+                            final Item item = messageObject.getItem();
+                            final List<Integer> itemIds = messageObject.getItemIds();
+                            final ByteCommand command = messageObject.getCommand();
+                            final PrintWriter out = new PrintWriter(socket.getOutputStream());
+                            if (session.CheckSessionForAuthentication()) {
+                                switch (command) {
+                                    case getItems: {
+                                        for (final Item i : new Item().readAll(false, session.getSessionId())) {
+                                            messageObject.setItem(i);
+                                            out.println(objectMapper.writeValueAsString(messageObject));
+                                            out.flush();
+                                        }
+                                        break;
+                                    }
+                                    case addItem: {
+                                        messageObject.setItem(item.create());
+                                        out.println(objectMapper.writeValueAsString(messageObject));
+                                        out.flush();
+                                        break;
+                                    }
+                                    case updateItem: {
+                                        messageObject.setItem(item.update(false));
+                                        out.println(objectMapper.writeValueAsString(messageObject));
+                                        out.flush();
+                                        break;
+                                    }
+                                    case removeItemFromList: {
+                                        item.delete(false);
+                                        break;
+                                    }
+                                    case getLibrary: {
+                                        for (final Item i : new Item().readAll(true, session.getSessionId())) {
+                                            messageObject.setItem(i);
+                                            out.println(objectMapper.writeValueAsString(messageObject));
+                                            out.flush();
+                                        }
+                                        break;
+                                    }
+                                    case reAddItems: {
+                                        for (Item i : new Item().reAdd(itemIds, session.getSessionId())) {
+                                            messageObject.setItem(i);
+                                            out.println(objectMapper.writeValueAsString(messageObject));
+                                            out.flush();
+                                        }
+                                        break;
+                                    }
+                                    case removeItemsFromList: {
+                                        new Item().removeItems(itemIds);
+                                        break;
+                                    }
+                                    case getLibraryItemsThatContain: {
+                                        for (final Item i : item.getLibraryItemsThatContain(item.getName())) {
+                                            messageObject.setItem(i);
+                                            out.println(objectMapper.writeValueAsString(messageObject));
+                                            out.flush();
+                                        }
+                                        break;
+                                    }
+                                }
                             } else {
-                                MessageFromClient = sb.toString();
+                                session.create();
+                                messageObject.setSession(session);
+                                String outputValue = objectMapper.writeValueAsString(messageObject);
+                                out.println(outputValue);
+                                out.flush();
                             }
-                            PrintWriter out = new PrintWriter(socket.getOutputStream());
-                            switch (command) {
-                                case getItems: {
-                                    for (final Item.ItemBuilder i : new Item.ItemBuilder().readAll(false)) {
-                                        out.println(i.build().toString());
-                                        out.flush();
-                                    }
-                                    break;
-                                }
-                                case addItem: {
-                                    if (!(MessageFromClient.length() < 2)) {
-                                        final Item inputItem = Item.fromString(MessageFromClient);
-                                        out.println(new Item.ItemBuilder(inputItem.getId(), inputItem.getName()).bestPrice(inputItem.getBestPrice()).listActive(true).store(inputItem.getStore()).libraryActive(true).create().build().toString());
-                                        out.flush();
-                                    }
-                                    break;
-                                }
-                                case updateItem: {
-                                    final Item inputItem = Item.fromString(MessageFromClient);
-                                    out.println(new Item.ItemBuilder(inputItem.getId(), inputItem.getName()).bestPrice(inputItem.getBestPrice()).listActive(true).store(inputItem.getStore()).libraryActive(true).update(false).build().getId());
-                                    out.flush();
-                                    break;
-                                }
-                                case removeItemFromList: {
-                                    new Item.ItemBuilder().id(Integer.parseInt(MessageFromClient)).delete(false);
-                                    break;
-                                }
-                                case getLibrary: {
-                                    for (final Item.ItemBuilder i : new Item.ItemBuilder().readAll(true)) {
-                                        out.println(i.build().toString());
-                                        out.flush();
-                                    }
-                                    break;
-                                }
-                                case reAddItems: {
-                                    for(Item.ItemBuilder ib : new Item.ItemBuilder().reAdd(MessageFromClient.split(";"))) {
-                                        out.println(ib.build().toString());
-                                        out.flush();
-                                    }
-                                    break;
-                                } case removeItemsFromList: {
-                                    new Item.ItemBuilder().removeItems(MessageFromClient.split(";"));
-                                    break;
-                                }
-                                case getLibraryItemsThatContain: {
-                                    for (final Item.ItemBuilder i : new Item.ItemBuilder().getLibraryItemsThatContain(MessageFromClient.split(";")[0])) {
-                                        out.println(i.build().toString());
-                                        out.flush();
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                        catch (Exception ex) {
+                        } catch (Exception ex) {
                             done = true;
                             close();
                         }
                     }
                     close();
-                }
-                catch(Exception ex)
-                {
+                } catch (Exception ex) {
                     stop();
                     start();
                 }
@@ -124,27 +129,24 @@ public class Server implements Runnable {
         }
     }
 
-    public void start()
-    {
-        if (thread == null)
-        {
+    public void start() {
+        if (thread == null) {
             thread = new Thread(this);
             thread.start();
         }
     }
-    public void stop()
-    {
-        if (thread != null)
-        {
+
+    public void stop() {
+        if (thread != null) {
             thread = null;
         }
     }
-    private void open() throws IOException
-    {
+
+    private void open() throws IOException {
         streamIn = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
     }
-    private void close() throws IOException
-    {
+
+    private void close() throws IOException {
         if (socket != null)
             socket.close();
         if (streamIn != null)
