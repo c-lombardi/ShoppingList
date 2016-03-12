@@ -5,9 +5,12 @@ import java.util.UUID;
  * Created by Christopher on 9/2/2015.
  */
 public class ItemQueries {
-    public static final String getAllItemsFromLibrary = "SELECT * " +
-            "FROM Items " +
-            "WHERE LibraryActive = TRUE AND ListActive = FALSE";
+
+    public static final String getAllItemsFromLibrary(final UUID sId) {
+        return String.format("SELECT * " +
+                "FROM Items " +
+                "WHERE LibraryActive = TRUE AND ListActive = FALSE AND SessionId = '%s'", sId.toString());
+    }
 
     public static final String getItemById(final int itemId) {
         return String.format("SELECT * " +
@@ -54,7 +57,7 @@ public class ItemQueries {
                     newItem.getStore().getId(), true, true, newItem.getId());
         }
         return String.format("UPDATE Items " +
-                        "SET (ItemName, BestPrice, ListActive, LibraryActive) = ('%s', %f, %b, %b) WHERE ItemId = %d",
+                        "SET (ItemName, BestPrice, ListActive, LibraryActive, StoreId) = ('%s', %f, %b, %b, NULL) WHERE ItemId = %d",
                 newItem.getName(), newItem.getBestPrice(), true, true, newItem.getId());
     }
 
@@ -150,13 +153,14 @@ public class ItemQueries {
             }
             StringBuilder queryStringBuilder = new StringBuilder(String.format("SELECT ItemId, ItemName " +
                     "FROM Items " +
-                    "WHERE (LibraryActive = TRUE AND ListActive = FALSE AND SessionId = '%s') " +
+                    "WHERE (LibraryActive = TRUE AND ListActive = FALSE) " +
+                    "AND SessionId = '%s' " +
                     "AND lower(ItemName) LIKE '%%" +
                     "%s" +
                     "%%'", sId.toString(), itemSearchString.toLowerCase()));
             return queryStringBuilder.toString();
         } catch (Exception ex) {
-            return getAllItemsFromLibrary;
+            return getAllItemsFromLibrary(sId);
         }
     }
 }

@@ -18,10 +18,11 @@ public class DatabaseQueries {
             "CREATE SEQUENCE Item_Seq START 1; " +
             "CREATE TABLE IF NOT EXISTS Items " +
             "(ItemId INTEGER PRIMARY KEY NOT NULL, " +
-            "ItemName VARCHAR(50) NOT NULL UNIQUE, " +
+            "ItemName VARCHAR(50) NOT NULL, " +
             "StoreId INTEGER REFERENCES Stores (StoreId), " +
             "SessionId uuid REFERENCES Sessions (SessionId) NOT NULL, " +
             "BestPrice REAL DEFAULT 0.00, " +
             "ListActive BOOLEAN DEFAULT TRUE, " +
-            "LibraryActive BOOLEAN DEFAULT TRUE);";
+            "LibraryActive BOOLEAN DEFAULT TRUE); " +
+            "CREATE UNIQUE INDEX itemnamesessionid_idx ON Items (ItemName, SessionId);";
 }

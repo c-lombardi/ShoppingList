@@ -144,7 +144,7 @@ public class Item implements CRUD<Item> {
                     }
                 }
             } else {
-                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromLibrary)) {
+                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromLibrary(sId))) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), UUID.fromString(rs.getString("SessionId"))));
