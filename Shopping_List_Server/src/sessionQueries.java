@@ -11,14 +11,14 @@ public class sessionQueries {
                 "RETURNING SessionId;", sessionPhoneNumber, sessionAuthCode);
     }
 
-    public static String setSessionAuthCodeById(final UUID sId, final String sessionAuthCode) {
+    public static String setSessionAuthCodeByPhoneNumber(final String sessionPhoneNumber, final String sessionAuthCode) {
         return String.format("UPDATE Sessions " +
                 "SET SessionAuthCode = '%s' " +
-                "WHERE SessionId = '%s';", sessionAuthCode, sId);
+                "WHERE SessionPhoneNumber = '%s';", sessionAuthCode, sessionPhoneNumber);
     }
 
-    public static String getSessionPhoneNumberById(final UUID sId) {
-        return String.format("SELECT SessionPhoneNumber " +
+    public static String getSessionPhoneNumberAndAuthCodeById(final UUID sId) {
+        return String.format("SELECT SessionPhoneNumber, SessionAuthCode " +
                 "FROM Sessions " +
                 "WHERE SessionId = '%s';", sId.toString());
     }

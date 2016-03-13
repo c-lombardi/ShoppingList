@@ -24,6 +24,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.daimajia.swipe.adapters.ArraySwipeAdapter;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -69,10 +71,10 @@ public class Shopping_List extends AppCompatActivity {
                     break;
                 }
             }
-            if (foundItem != null) {
+            if (foundItem != null)
                 itemArrayList.remove(foundItem);
-            }
-            itemArrayList.add(newItem);
+            if(newItem != null)
+                itemArrayList.add(newItem);
         } catch (final Exception ignored) {
         }
     }
@@ -130,7 +132,7 @@ public class Shopping_List extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 try {
-                    showPhoneNumberDialog();
+                    showPhoneNumberDialog(false);
                     showAuthCodeDialog();
                     itemListView.setEnabled(false);
                     new Client.ClientBuilder(ByteCommand.getItems, getPreferences(MODE_PRIVATE).getString(IpAddressString, ActualHardCodedIpAddress), session, Shopping_List.this).build().execute();
@@ -214,30 +216,43 @@ public class Shopping_List extends AppCompatActivity {
                 updateItemTotalTitle();
             }
         });
-        showPhoneNumberDialog();
+        showPhoneNumberDialog(false);
         showAuthCodeDialog();
     }
 
-    private void showPhoneNumberDialog() {
-        if (session.getSessionPhoneNumber().isEmpty()) {
+    private void showPhoneNumberDialog(final boolean override) {
+        if (session.getSessionPhoneNumber().isEmpty() || override) {
             final AlertDialog.Builder alert = new AlertDialog.Builder(Shopping_List.this);
             alert.setTitle("Enter Your Phone Number To Proceed");
             final LayoutInflater createEnterPhoneNumberInflater = Shopping_List.this.getLayoutInflater();
             final View inflatedView = createEnterPhoneNumberInflater.inflate(R.layout.phone_number_fragment, null);
             alert.setView(inflatedView);
             final EditText phoneNumberView = (EditText) inflatedView.findViewById(R.id.phoneNumber);
+            phoneNumberView.setText(getPreferences(MODE_PRIVATE).getString(SessionPhoneNumberString, ""));
             alert.setPositiveButton("Enter", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(final DialogInterface dialog, final int which) {
                     try {
                         final String inputtedPhoneNumber = phoneNumberView.getText().toString().trim();
                         final SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+                        if(override) {
+                            //clear Auth Code and Session Id
+                            editor.putString(SessionAuthCodeString, "");
+                            editor.putString(SessionIdString, "");
 
+                            session.setSessionAuthCode("");
+                            session.setSessionId(null);
+                            session.setSessionPhoneNumber(inputtedPhoneNumber);
+
+                            ClearItemArrayList();
+                            NotifyAdapterThatItemListChanged();
+                        }
+                        else {
+                            session.setSessionPhoneNumber(inputtedPhoneNumber);
+                        }
                         editor.putString(SessionPhoneNumberString, inputtedPhoneNumber);
-                        session.setSessionPhoneNumber(inputtedPhoneNumber);
-
                         editor.apply();
-                        new Client.ClientBuilder(ByteCommand.getItems, getPreferences(MODE_PRIVATE).getString(IpAddressString, ActualHardCodedIpAddress), session, Shopping_List.this).build().execute();
+                        new Client.ClientBuilder(ByteCommand.requestNewAuthCode, getPreferences(MODE_PRIVATE).getString(IpAddressString, ActualHardCodedIpAddress), session, Shopping_List.this).build().execute();
                         showAuthCodeDialog();
                     } catch (final Exception e) {
                         e.printStackTrace();
@@ -259,7 +274,8 @@ public class Shopping_List extends AppCompatActivity {
     private void showAuthCodeDialog() {
         if (session.getSessionAuthCode().isEmpty() && !session.getSessionPhoneNumber().isEmpty()) {
             final AlertDialog.Builder alert = new AlertDialog.Builder(Shopping_List.this);
-            alert.setTitle("An Authorization Code has been sent to you, please enter it here.");
+            alert.setTitle("Please enter your authorization code.");
+            alert.setMessage("Or request a new one be sent to you at " + session.getSessionPhoneNumber());
             final LayoutInflater createEnterAccessCodeInflater = Shopping_List.this.getLayoutInflater();
             final View inflatedView = createEnterAccessCodeInflater.inflate(R.layout.access_code_fragment, null);
             alert.setView(inflatedView);
@@ -280,12 +296,14 @@ public class Shopping_List extends AppCompatActivity {
                     }
                 }
             });
-            alert.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                public void onClick(final DialogInterface dialog, final int whichButton) {
+            alert.setNegativeButton("Request Code", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(final DialogInterface dialog, final int which) {
                     try {
-                        dialog.dismiss();
+                        new Client.ClientBuilder(ByteCommand.requestNewAuthCode, getPreferences(MODE_PRIVATE).getString(IpAddressString, ActualHardCodedIpAddress), session, Shopping_List.this).build().execute();
                     } catch (final Exception ignored) {
                     }
+                    showAuthCodeDialog();
                 }
             });
             alert.show();
@@ -317,8 +335,11 @@ public class Shopping_List extends AppCompatActivity {
 
         if (session.getSessionId() != null) {
             editor.putString(SessionIdString, sId.toString());
-            editor.apply();
+        } else {
+            editor.putString(SessionAuthCodeString, "");
+            session.setSessionAuthCode("");
         }
+        editor.apply();
     }
 
     @Override
@@ -620,8 +641,13 @@ public class Shopping_List extends AppCompatActivity {
         });
         alert.show();
     }
-    //END Library Section
+    //END Configure IP Section
 
+    //START Configure Phone Number Section
+    public void ConfigurePhoneNumber(final MenuItem view) {
+        showPhoneNumberDialog(true);
+    }
+    //END Configure Phone Number Section
     private class ItemsAdapter extends ArrayAdapter<Item> {
         public ItemsAdapter(final Context context, final ArrayList<Item> users) {
             super(context, 0, users);
@@ -681,7 +707,8 @@ public class Shopping_List extends AppCompatActivity {
                 e.printStackTrace();
             }
             changeColorLibrary(item, convertView);
-            convertView.setTag(item.getId());
+            if(item != null)
+                convertView.setTag(item.getId());
             // Return the completed view to render on screen
             return convertView;
         }

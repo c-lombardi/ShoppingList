@@ -61,6 +61,11 @@ public class Server implements Runnable {
                                             out.println(objectMapper.writeValueAsString(messageObject));
                                             out.flush();
                                         }
+                                        //this block is for when there are no items in the list, so the sessionId is not sent back.
+                                        messageObject.setItem(null);
+                                        out.println(objectMapper.writeValueAsString(messageObject));
+                                        out.flush();
+                                        //end weird block
                                         break;
                                     }
                                     case addItem: {
@@ -109,6 +114,9 @@ public class Server implements Runnable {
                                     }
                                 }
                             } else {
+                                if(messageObject.getCommand().equals(ByteCommand.requestNewAuthCode)) {
+                                    messageObject.getSession().updateAuthCode();
+                                }
                                 session.create();
                                 messageObject.setSession(session);
                                 String outputValue = objectMapper.writeValueAsString(messageObject);

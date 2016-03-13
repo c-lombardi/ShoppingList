@@ -106,8 +106,10 @@ public class Client extends AsyncTask<String, Client, String> {
                             message = objectMapper.readValue(itemString, Message.class);
                             Shopping_List.AddToLibraryItemArrayList(message.getItem());
                         }
+                        break;
                     }
                 }
+                out.flush();
                 in.close();
                 out.close();
                 done = true;

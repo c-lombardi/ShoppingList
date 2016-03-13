@@ -1,3 +1,5 @@
+import com.twilio.sdk.TwilioRestException;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Random;
@@ -32,22 +34,16 @@ public class Session implements java.io.Serializable {
     }
 
     public void setSessionAuthCode(final String sac) {
-        if ((sac == null || sac == "")) {
-            SessionAuthCode = new SessionAuthCodeGenerator().Generate();
-            //updateAuthCode();
-        } else {
-            SessionAuthCode = sac;
-        }
+        SessionAuthCode = sac;
     }
 
     public boolean CheckSessionForAuthentication() {
         try (final Database db = new Database()) {
-            try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.getSessionPhoneNumberById(SessionId))) {
+            try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.getSessionIdByPhoneNumberAndAuthCode(SessionPhoneNumber, SessionAuthCode))) {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        String queriedPhoneNumber = rs.getString("SessionPhoneNumber");
-                        boolean result = queriedPhoneNumber.equals(SessionPhoneNumber);
-                        return result;
+                        SessionId = UUID.fromString(rs.getString("SessionId"));
+                        return true;
                     }
                     return false;
                 }
@@ -58,38 +54,47 @@ public class Session implements java.io.Serializable {
     }
 
     public void updateAuthCode() {
+        SessionAuthCode = new SessionAuthCodeGenerator().Generate();
         try (final Database db = new Database()) {
-            db.updateTableQuery(sessionQueries.setSessionAuthCodeById(SessionId, SessionAuthCode));
+            db.updateTableQuery(sessionQueries.setSessionAuthCodeByPhoneNumber(SessionPhoneNumber, SessionAuthCode));
+            sendAuthCodeToPhoneNumber();
         } catch (Exception ex) {
         }
     }
 
     public void create() {
         try (final Database db = new Database()) {
+            SessionAuthCode = new SessionAuthCodeGenerator().Generate();
             try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.createSession(SessionPhoneNumber, SessionAuthCode))) {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        String result = rs.getString("SessionId");
-                        setSessionId(UUID.fromString(result));
+                        sendAuthCodeToPhoneNumber();
                     }
                 }
             }
         } catch (Exception ex) {
-            try (final Database db = new Database()) {
-                try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.getSessionIdByPhoneNumberAndAuthCode(SessionPhoneNumber, SessionAuthCode))) {
-                    try (final ResultSet rs = stmt.executeQuery()) {
-                        if (rs.next()) {
-                            String result = rs.getString("SessionId");
-                            setSessionId(UUID.fromString(result));
-                        }
-                    }
-                }
-            } catch (Exception ex1) {
-                System.out.println(ex1);
-            }
         } finally {
             clearAuthCodeAndPhoneNumber();
         }
+    }
+
+    private void sendAuthCodeToPhoneNumber() throws TwilioRestException {
+        /*final TwilioRestClient client = new TwilioRestClient("AC6a73c702887ab22b3aaf8ff97fc99784", "18221fa9ba8db2b0063f0f8f372161a0");
+        final Account account = client.getAccount();
+        String availablePhoneNumber = null;
+        final Iterator<AvailablePhoneNumber> availablePhoneNumberIterator = account.getAvailablePhoneNumbers().iterator();
+        if(availablePhoneNumberIterator.hasNext()){
+            availablePhoneNumber = availablePhoneNumberIterator.next().getPhoneNumber();
+        }
+        if(availablePhoneNumber != null) {
+            final com.twilio.sdk.resource.factory.MessageFactory messageFactory = account.getMessageFactory();
+            final List<NameValuePair> params = new ArrayList<>();
+            params.add(new BasicNameValuePair("To", SessionPhoneNumber));
+            params.add(new BasicNameValuePair("From", "17247395077"));
+            params.add(new BasicNameValuePair("Body", SessionAuthCode));
+            final com.twilio.sdk.resource.instance.Message sms = messageFactory.create(params);
+        }*/
+        System.out.println(SessionAuthCode);
     }
 
     private void clearAuthCodeAndPhoneNumber() {
