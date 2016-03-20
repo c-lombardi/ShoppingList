@@ -4,11 +4,11 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".Shopping_ListFragment"
-    android:id="@+id/shopping_list_layout_id">
+    android:id="@+id/item_list_layout_id">
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/empty"
+        android:id="@+id/empty_item_item_list"
         android:gravity="center_horizontal|center_vertical"
         android:focusable="false"
         android:text="@string/no_items">

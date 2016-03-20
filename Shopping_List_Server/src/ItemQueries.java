@@ -6,7 +6,7 @@ import java.util.UUID;
  */
 public class ItemQueries {
 
-    public static final String getAllItemsFromLibrary(final UUID sId) {
+    public static final String getAllItemsFromLibrary(final UUID sId) {//this should stay the same, libraries are universal across shopping lists
         return String.format("SELECT * " +
                 "FROM Items " +
                 "WHERE LibraryActive = TRUE AND ListActive = FALSE AND SessionId = '%s'", sId.toString());
@@ -27,13 +27,13 @@ public class ItemQueries {
 
     public static final String addItem(final Item item) {
         if (item.getStore() != null) {
-            return String.format("INSERT INTO Items (ItemId, ItemName, SessionId, BestPrice, ListActive, LibraryActive, StoreId) " +
-                    "VALUES (nextval('Item_Seq'), '%s', '%s', %f, %b, %b, (SELECT StoreId FROM Stores WHERE StoreName = '%s')) " +
-                    "RETURNING ItemId, ItemName, BestPrice, StoreId", item.getName(), item.getSessionId().toString(), item.getBestPrice(), true, true, item.getStore().getName());
+            return String.format("INSERT INTO Items (ItemId, ItemName, ShoppingListId, SessionId, BestPrice, ListActive, LibraryActive, StoreId) " +
+                    "VALUES (nextval('Item_Seq'), '%s', %d, '%s', %f, %b, %b, (SELECT StoreId FROM Stores WHERE StoreName = '%s')) " +
+                    "RETURNING ItemId, ItemName, BestPrice, StoreId", item.getName(), item.getShoppingListId(), item.getSessionId().toString(), item.getBestPrice(), true, true, item.getStore().getName());
         } else {
-            return String.format("INSERT INTO Items (ItemId, ItemName, SessionId, BestPrice, ListActive, LibraryActive) " +
-                    "VALUES (nextval('Item_Seq'), '%s', '%s', %f, %b, %b) " +
-                    "RETURNING ItemId, ItemName, BestPrice", item.getName(), item.getSessionId().toString(), item.getBestPrice(), true, true);
+            return String.format("INSERT INTO Items (ItemId, ItemName, ShoppingListId, SessionId, BestPrice, ListActive, LibraryActive) " +
+                    "VALUES (nextval('Item_Seq'), '%s', %d, '%s', %f, %b, %b) " +
+                    "RETURNING ItemId, ItemName, BestPrice", item.getName(), item.getShoppingListId(), item.getSessionId().toString(), item.getBestPrice(), true, true);
         }
     }
 
@@ -74,21 +74,21 @@ public class ItemQueries {
 
     public static final String makeActiveById(final Item newItem) {
         return String.format("UPDATE Items " +
-                        "SET (ListActive) = (%b) WHERE ItemId = %d",
+                        "SET (ListActive) = (%b) WHERE ItemId = %d;",
                 true, newItem.getId());
     }
 
     public static final String makeActiveByName(final Item newItem) {
         return String.format("UPDATE Items " +
-                        "SET (ListActive) = (%b) WHERE ItemName = '%s'",
+                        "SET (ListActive) = (%b) WHERE ItemName = '%s';",
                 true, newItem.getName());
     }
 
-    public static final String getAllItemsFromListBySessionId(final UUID sId) {
+    public static final String getAllItemsFromListByShoppingListId(final int sId) {
         return String.format("SELECT Items.ItemId, Items.ItemName, Items.SessionId, Items.BestPrice, Items.ListActive, Items.LibraryActive, Stores.StoreId, Stores.StoreName, Items.SessionId " +
                 "FROM Items " +
                 "LEFT JOIN Stores ON Items.StoreId = Stores.StoreId " +
-                "WHERE Items.ListActive = TRUE AND Items.SessionId = '%s'", sId);
+                "WHERE Items.ListActive = TRUE AND Items.ShoppingListId = %d;", sId);
     }
 
     public static final String reAddItemsByIds(final List<Integer> itemIds) {
@@ -101,7 +101,7 @@ public class ItemQueries {
                 if (itemIds.size() != count) {
                     queryStringBuilder.append(String.format("ItemId = %d OR ", itemId));
                 } else {
-                    queryStringBuilder.append(String.format("ItemId = %d", itemId));
+                    queryStringBuilder.append(String.format("ItemId = %d;", itemId));
                 }
             }
             return queryStringBuilder.toString();
@@ -120,7 +120,7 @@ public class ItemQueries {
                 if (itemIds.size() != count) {
                     queryStringBuilder.append(String.format("ItemId = %d OR ", itemId));
                 } else {
-                    queryStringBuilder.append(String.format("ItemId = %d", itemId));
+                    queryStringBuilder.append(String.format("ItemId = %d;", itemId));
                 }
             }
             return queryStringBuilder.toString();
@@ -128,8 +128,8 @@ public class ItemQueries {
         return null;
     }
 
-    public static final String getItemsByIds(final List<Integer> itemIds, final UUID sId) {
-        StringBuilder queryStringBuilder = new StringBuilder(getAllItemsFromListBySessionId(sId));
+    public static final String getItemsByIds(final List<Integer> itemIds, final int slId) {
+        StringBuilder queryStringBuilder = new StringBuilder(getAllItemsFromListByShoppingListId(slId));
         queryStringBuilder.append(" AND ");
         if (!itemIds.isEmpty()) {
             int count = 0;
@@ -138,7 +138,7 @@ public class ItemQueries {
                 if (itemIds.size() != count) {
                     queryStringBuilder.append(String.format("ItemId = %d OR ", itemId));
                 } else {
-                    queryStringBuilder.append(String.format("ItemId = %d", itemId));
+                    queryStringBuilder.append(String.format("ItemId = %d;", itemId));
                 }
             }
             return queryStringBuilder.toString();
@@ -157,7 +157,7 @@ public class ItemQueries {
                     "AND SessionId = '%s' " +
                     "AND lower(ItemName) LIKE '%%" +
                     "%s" +
-                    "%%'", sId.toString(), itemSearchString.toLowerCase()));
+                    "%%';", sId.toString(), itemSearchString.toLowerCase()));
             return queryStringBuilder.toString();
         } catch (Exception ex) {
             return getAllItemsFromLibrary(sId);

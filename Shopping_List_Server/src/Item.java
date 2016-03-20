@@ -13,23 +13,28 @@ public class Item implements CRUD<Item> {
     private Store Store;
     private float BestPrice;
     private UUID SessionId;
+    private int ShoppingListId;
 
     public Item() {
     }
 
-    private Item(final int id, final String n, final Store s, final float bp, final UUID sId) {
+    private Item(final int id, final String n, final Store s, final float bp, final UUID sId, final int slId) {
         setId(id);
         setName(n);
         setSessionId(sId);
         setStore(s);
         setBestPrice(bp);
+        setShoppingListId(slId);
     }
 
-    private Item(final int id, final String n, final UUID sId) {
+    private Item(final int id, final String n, final UUID sId, final int slId) {
         setId(id);
         setName(n);
         setSessionId(sId);
+        setShoppingListId(slId);
     }
+
+    public int getShoppingListId() {return ShoppingListId; }
 
     public float getBestPrice() {
         return BestPrice;
@@ -46,6 +51,8 @@ public class Item implements CRUD<Item> {
     public void setSessionId(final UUID sessionId) {
         SessionId = sessionId;
     }
+
+    public void setShoppingListId(final int slId) { ShoppingListId = slId; }
 
     public int getId() {
         return Id;
@@ -129,17 +136,17 @@ public class Item implements CRUD<Item> {
         }
     }
 
-    public List<Item> readAll(final boolean fromLibrary, UUID sId) {
+    public List<Item> readAll(final boolean fromLibrary, final UUID sId, final int slId) {
         final List<Item> returnList = new ArrayList<>();
         try (final Database db = new Database()) {
             if (!fromLibrary) {
-                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromListBySessionId(sId))) {
+                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromListByShoppingListId(slId))) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             Store store = new Store();
                             store.setId(rs.getInt("StoreId"));
                             store.setName(rs.getString("StoreName"));
-                            returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), store, rs.getFloat("BestPrice"), UUID.fromString(rs.getString("SessionId"))));
+                            returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), store, rs.getFloat("BestPrice"), UUID.fromString(rs.getString("SessionId")), rs.getInt("ShoppingListId")));
                         }
                     }
                 }
@@ -147,7 +154,7 @@ public class Item implements CRUD<Item> {
                 try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromLibrary(sId))) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
-                            returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), UUID.fromString(rs.getString("SessionId"))));
+                            returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), UUID.fromString(rs.getString("SessionId")), rs.getInt("ShoppingListId")));
                         }
                     }
                 }
@@ -226,17 +233,17 @@ public class Item implements CRUD<Item> {
         }
     }
 
-    public List<Item> reAdd(final List<Integer> itemIds, final UUID sId) {
+    public List<Item> reAdd(final List<Integer> itemIds, final int slId) {
         final List<Item> returnList = new ArrayList<>();
         try (final Database db = new Database()) {
             db.updateTableQuery(ItemQueries.reAddItemsByIds(itemIds));
-            try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemsByIds(itemIds, sId))) {
+            try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemsByIds(itemIds, slId))) {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         Store store = new Store();
                         store.setId(rs.getInt("StoreId"));
                         store.setName(rs.getString("StoreName"));
-                        returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), store, rs.getFloat("BestPrice"), UUID.fromString(rs.getString("SessionId"))));
+                        returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), store, rs.getFloat("BestPrice"), UUID.fromString(rs.getString("SessionId")), rs.getInt("ShoppingListId")));
                     }
                 }
             }

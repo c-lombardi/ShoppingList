@@ -36,7 +36,7 @@ public class Server implements Runnable {
                     open();
                     System.out.println("Connected!");
                     boolean done = false;
-                    thread.sleep(1000);
+                    thread.sleep(1000); //removed for now to see if performance is still the same.
                     while (!done) {
                         try {
                             final BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -56,12 +56,12 @@ public class Server implements Runnable {
                             if (session.CheckSessionForAuthentication()) {
                                 switch (command) {
                                     case getItems: {
-                                        for (final Item i : new Item().readAll(false, session.getSessionId())) {
+                                        for (final Item i : new Item().readAll(false, session.getSessionId(), messageObject.getShopping_list().getShoppingListId())) {
                                             messageObject.setItem(i);
                                             out.println(objectMapper.writeValueAsString(messageObject));
                                             out.flush();
                                         }
-                                        //this block is for when there are no items in the list, so the sessionId is not sent back.
+                                        //this block is for when there are no items in the list, so the sessionId is not sent back. This occurs when a list is empty
                                         messageObject.setItem(null);
                                         out.println(objectMapper.writeValueAsString(messageObject));
                                         out.flush();
@@ -85,7 +85,7 @@ public class Server implements Runnable {
                                         break;
                                     }
                                     case getLibrary: {
-                                        for (final Item i : new Item().readAll(true, session.getSessionId())) {
+                                        for (final Item i : new Item().readAll(true, session.getSessionId(), messageObject.getShopping_list().getShoppingListId())) {
                                             messageObject.setItem(i);
                                             out.println(objectMapper.writeValueAsString(messageObject));
                                             out.flush();
@@ -93,7 +93,7 @@ public class Server implements Runnable {
                                         break;
                                     }
                                     case reAddItems: {
-                                        for (Item i : new Item().reAdd(itemIds, session.getSessionId())) {
+                                        for (Item i : new Item().reAdd(itemIds, messageObject.getShopping_list().getShoppingListId())) {
                                             messageObject.setItem(i);
                                             out.println(objectMapper.writeValueAsString(messageObject));
                                             out.flush();
@@ -110,6 +110,29 @@ public class Server implements Runnable {
                                             out.println(objectMapper.writeValueAsString(messageObject));
                                             out.flush();
                                         }
+                                        break;
+                                    }
+                                    case createShoppingList: {
+                                        messageObject.getShopping_list().create();
+                                        out.println(objectMapper.writeValueAsString(messageObject));
+                                        out.flush();
+                                        break;
+                                    }
+                                    case renameShoppingList: {
+                                        messageObject.getShopping_list().update(false);
+                                        out.println(objectMapper.writeValueAsString(messageObject));
+                                        out.flush();
+                                        break;
+                                    }
+                                    case getListOfShoppingLists: {
+                                        for (final Shopping_List sl : new Shopping_List().readAll(messageObject.getSession().getSessionId())){
+                                            messageObject.setShopping_list(sl);
+                                            out.println(objectMapper.writeValueAsString(messageObject));
+                                            out.flush();
+                                        }
+                                        messageObject.setShopping_list(null);
+                                        out.println(objectMapper.writeValueAsString(messageObject));
+                                        out.flush();
                                         break;
                                     }
                                 }

@@ -17,7 +17,7 @@
         android:title="@string/add_item"
         android:icon="@mipmap/sym_action_add"
         android:orderInCategory="100"
-        android:onClick="AddNewItem"
+        android:onClick="AddNewShopping_List"
         app:showAsAction="ifRoom|withText" />
     <item android:id="@+id/action_settings"
         android:title="@string/configure_ip_address"

@@ -1,5 +1,3 @@
-import java.util.UUID;
-
 /**
  * Created by Christopher on 10/29/2015.
  */
@@ -15,12 +13,6 @@ public class sessionQueries {
         return String.format("UPDATE Sessions " +
                 "SET SessionAuthCode = '%s' " +
                 "WHERE SessionPhoneNumber = '%s';", sessionAuthCode, sessionPhoneNumber);
-    }
-
-    public static String getSessionPhoneNumberAndAuthCodeById(final UUID sId) {
-        return String.format("SELECT SessionPhoneNumber, SessionAuthCode " +
-                "FROM Sessions " +
-                "WHERE SessionId = '%s';", sId.toString());
     }
 
     public static String getSessionIdByPhoneNumberAndAuthCode(final String sessionPhoneNumber, final String authCode) {

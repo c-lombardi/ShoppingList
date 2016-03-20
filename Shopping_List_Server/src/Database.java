@@ -31,47 +31,54 @@ public class Database implements AutoCloseable {
     private void createDatabase() throws SQLException {
         try (PreparedStatement stmt = db.prepareStatement(createDatabase)) {
             stmt.executeUpdate();
-        } catch (Exception ex) {
+        } catch (final Exception ignored) {
         }
     }
 
     private void createTables() throws SQLException {
         createSessionsTable();
         createStoresTable();
+        createShoppingListTable();
         createItemsTable();
     }
 
     private void createSessionsTable() throws SQLException {
         try (PreparedStatement stmt = db.prepareStatement(DatabaseQueries.CREATE_SESSION)) {
             stmt.executeUpdate();
-        } catch (Exception ex) {
+        } catch (final Exception ignored) {
+        }
+    }
+
+    private void createShoppingListTable() throws SQLException {
+        try (PreparedStatement stmt = db.prepareStatement(DatabaseQueries.CREATE_SHOPPING_LISTS)) {
+            stmt.executeUpdate();
+        } catch (final Exception ignored) {
         }
     }
 
     private void createStoresTable() throws SQLException {
         try (PreparedStatement stmt = db.prepareStatement(DatabaseQueries.CREATE_STORE)) {
             stmt.executeUpdate();
-        } catch (Exception ex) {
+        } catch (final Exception ignored) {
         }
     }
 
     private void createItemsTable() throws SQLException {
         try (PreparedStatement stmt = db.prepareStatement(DatabaseQueries.CREATE_ITEM)) {
             stmt.executeUpdate();
-        } catch (Exception ex) {
+        } catch (final Exception ignored) {
         }
     }
 
     public void updateTableQuery(final String query) throws SQLException {
         try (PreparedStatement stmt = db.prepareStatement(query)) {
             stmt.executeUpdate();
-        } catch (Exception ex) {
+        } catch (final Exception ignored) {
         }
     }
 
     public PreparedStatement selectTableQuery(final String query) throws SQLException {
-        PreparedStatement stmt = db.prepareStatement(query);
-        return stmt;
+        return db.prepareStatement(query);
     }
 
     @Override

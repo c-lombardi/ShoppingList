@@ -8,6 +8,15 @@ public class Message {
     private ByteCommand command;
     private Item item;
     private List<Integer> itemIds;
+    private Shopping_List shopping_list;
+
+    public Shopping_List getShopping_list() {
+        return shopping_list;
+    }
+
+    public void setShopping_list(Shopping_List sl) {
+        shopping_list = sl;
+    }
 
     public Session getSession() {
         return session;

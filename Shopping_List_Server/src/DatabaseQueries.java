@@ -14,6 +14,12 @@ public class DatabaseQueries {
             "CREATE TABLE IF NOT EXISTS Stores " +
             "(StoreId INTEGER PRIMARY KEY NOT NULL, " +
             "StoreName VARCHAR(50) NOT NULL UNIQUE);";
+        public static final String CREATE_SHOPPING_LISTS = "DROP SEQUENCE IF EXISTS Shopping_List_Seq; "+
+                "CREATE SEQUENCE Shopping_List_Seq START 1; " +
+                "CREATE TABLE IF NOT EXISTS Shopping_Lists " +
+                "(ShoppingListId INTEGER PRIMARY KEY NOT NULL, " +
+                "ShoppingListName VARCHAR(50) NOT NULL, " +
+                "SessionId uuid REFERENCES Sessions (SessionId) NOT NULL);";
     public static final String CREATE_ITEM = "DROP SEQUENCE IF EXISTS Item_Seq; " +
             "CREATE SEQUENCE Item_Seq START 1; " +
             "CREATE TABLE IF NOT EXISTS Items " +
@@ -21,6 +27,7 @@ public class DatabaseQueries {
             "ItemName VARCHAR(50) NOT NULL, " +
             "StoreId INTEGER REFERENCES Stores (StoreId), " +
             "SessionId uuid REFERENCES Sessions (SessionId) NOT NULL, " +
+            "ShoppingListId INTEGER REFERENCES Shopping_Lists (ShoppingListId) NOT NULL, " +
             "BestPrice REAL DEFAULT 0.00, " +
             "ListActive BOOLEAN DEFAULT TRUE, " +
             "LibraryActive BOOLEAN DEFAULT TRUE); " +
