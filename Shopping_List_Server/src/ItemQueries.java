@@ -85,7 +85,7 @@ public class ItemQueries {
     }
 
     public static final String getAllItemsFromListByShoppingListId(final int sId) {
-        return String.format("SELECT Items.ItemId, Items.ItemName, Items.SessionId, Items.BestPrice, Items.ListActive, Items.LibraryActive, Stores.StoreId, Stores.StoreName, Items.SessionId " +
+        return String.format("SELECT Items.ItemId, Items.ItemName, Items.SessionId, Items.BestPrice, Items.ListActive, Items.LibraryActive, Stores.StoreId, Stores.StoreName, Items.SessionId, Items.ShoppingListId " +
                 "FROM Items " +
                 "LEFT JOIN Stores ON Items.StoreId = Stores.StoreId " +
                 "WHERE Items.ListActive = TRUE AND Items.ShoppingListId = %d;", sId);

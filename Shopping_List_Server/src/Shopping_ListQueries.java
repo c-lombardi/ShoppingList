@@ -6,7 +6,8 @@ import java.util.UUID;
 public class Shopping_ListQueries {
     public static String CREATE_SHOPPING_LIST_BY_NAME_AND_SESSION_ID (String shoppingListName, UUID sId) {
         return String.format("INSERT INTO Shopping_Lists (ShoppingListId, ShoppingListName, SessionId) " +
-                "VALUES (nextval('Shopping_List_Seq'), '%s', '%s');", shoppingListName, sId.toString());
+                "VALUES (nextval('Shopping_List_Seq'), '%s', '%s') " +
+                "RETURNING ShoppingListId;", shoppingListName, sId.toString());
     }
 
     public static String RENAME_SHOPPING_LIST_BY_SHOPPING_LIST_ID (Integer shoppingListId, String newName) {
