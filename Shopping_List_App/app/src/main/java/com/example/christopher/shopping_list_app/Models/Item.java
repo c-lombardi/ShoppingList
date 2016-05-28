@@ -16,6 +16,23 @@ public class Item implements Comparable<Item> {
         return ItemStatus;
     }
 
+    public void configureItemStatus() {
+        switch (ItemStatus) {
+            case Default: {
+                ItemStatus = ItemStatus.Found;
+                break;
+            }
+            case Found: {
+                ItemStatus = ItemStatus.NotFound;
+                break;
+            }
+            case NotFound: {
+                ItemStatus = ItemStatus.Default;
+                break;
+            }
+        }
+    }
+
     public void setItemStatus(ItemStatus itemStatus) {
         ItemStatus = itemStatus;
     }

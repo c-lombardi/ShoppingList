@@ -90,6 +90,7 @@ public class Items_CRUD extends CRUD.SetUpCRUDOperations<Item> {
                 final TextView listItemTextView = (TextView) listItemView.findViewById(R.id.itemName);
                 final String itemName = listItemTextView.getText().toString();
                 final AlertDialog.Builder alert = new AlertDialog.Builder(getFragment().getActivity());
+                final Item foundItem = (Item)parent.getItemAtPosition(position);
                 alert.setTitle("Edit Item");
                 alert.setMessage("I love you, Alina!");
                 final LayoutInflater createEditItemInflater = getFragment().getActivity().getLayoutInflater();
@@ -115,30 +116,13 @@ public class Items_CRUD extends CRUD.SetUpCRUDOperations<Item> {
                 }
                 alert.setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
                     public void onClick(final DialogInterface dialog, final int whichButton) {
-                        for (final Item item : getTypeList()) {
-                            if (item.getName().equals(itemName)) {
-                                final String itemName = itemNameView.getText().toString().trim();
-                                if (!itemName.isEmpty()) {
-                                    final Item i = new Item();
-                                    i.setId(item.getId());
-                                    i.setName(itemName);
-                                    i.setSessionId(item.getSessionId());
-                                    final String bestPriceString = bestPriceView.getText().toString().trim();
-                                    if (!bestPriceString.isEmpty()) {
-                                        i.setBestPrice(Float.parseFloat(bestPriceString));
-                                    }
-                                    final String storeName = storeNameView.getText().toString().trim();
-                                    if (!storeName.isEmpty()) {
-                                        final Store s = new Store();
-                                        s.setName(storeName);
-                                        i.setStore(s);
-                                    }
-                                    new Client.ClientBuilder(ByteCommand.updateItem, getFragment().getActivity().getPreferences(Context.MODE_PRIVATE).getString(StaticVariables.IpAddressString, StaticVariables.ActualHardCodedIpAddress), getFragment()).Item(i).build().execute();
-                                    updateItemTotalTitle();
-                                }
-                                break;
-                            }
-                        }
+                        foundItem.setBestPrice(Float.parseFloat(bestPriceView.getText().toString()));
+                        foundItem.setName(itemNameView.getText().toString());
+                        final Store foundStore = new Store();
+                        foundStore.setName(storeNameView.getText().toString());
+                        foundItem.setStore(foundStore);
+                        new Client.ClientBuilder(ByteCommand.updateItem, getFragment().getActivity().getPreferences(Context.MODE_PRIVATE).getString(StaticVariables.IpAddressString, StaticVariables.ActualHardCodedIpAddress), getFragment()).Item(foundItem).build().execute();
+                        updateItemTotalTitle();
                     }
                 });
                 alert.show();
@@ -148,10 +132,8 @@ public class Items_CRUD extends CRUD.SetUpCRUDOperations<Item> {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-                final View listItemView = getViewByPosition(position);
                 final Item foundItem = (Item)parent.getItemAtPosition(position);
-                handleColor(foundItem, listItemView, true);
-                handleDeleteGreenItemsButton();
+                foundItem.configureItemStatus();
                 updateItemTotalTitle();
                 new Client.ClientBuilder(ByteCommand.updateItemStatus, getFragment().getActivity().getPreferences(Context.MODE_PRIVATE).getString(StaticVariables.IpAddressString, StaticVariables.ActualHardCodedIpAddress), getFragment()).Item(foundItem).build().execute();
             }
