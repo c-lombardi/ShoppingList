@@ -6,7 +6,7 @@ import java.util.List;
 public class ItemQueries {
 
     public static final String getAllItemsFromLibrary(final String sId, final int slId) {//this should stay the same, libraries are universal across shopping lists
-        return String.format("SELECT i.ItemId, i.ItemName" +
+        return String.format("SELECT i.ItemId, i.ItemName " +
                 "FROM %s i " +
                 "WHERE i.SessionId = '%s' " +
                 "AND i.ItemId NOT IN (SELECT ItemId FROM %s WHERE ShoppingListId = %d);" , Database.ItemsTableName, sId, Database.ShoppingListItemsTableName, slId);
