@@ -8,13 +8,19 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class Database implements AutoCloseable {
-    static final String databaseName = "shopping_list_database";
-    static final String url = "jdbc:postgresql://localhost:5432/";
-    static final String dbUrl = url + databaseName;
-    static final String username = "postgres";
-    static final String password = "password";
-    static final String createDatabase = "CREATE DATABASE " + databaseName;
-    Connection db = null;
+    private static final String databaseName = "shopping_list_database";
+    private static final String url = "jdbc:postgresql://localhost:5432/";
+    private static final String dbUrl = url + databaseName;
+    private static final String username = "postgres";
+    private static final String password = "password";
+    private static final String createDatabase = "CREATE DATABASE " + databaseName;
+    private static Connection db = null;
+
+    public static final String SessionsTableName = "Sessions";
+    public static final String ItemsTableName = "Items";
+    public static final String ShoppingListsTableName = "Shopping_Lists";
+    public static final String ShoppingListItemsTableName = "ShoppingListItems";
+    public static final String StoresTableName = "Stores";
 
     public Database() throws ClassNotFoundException, SQLException {
         Class.forName("org.postgresql.Driver");
@@ -40,6 +46,7 @@ public class Database implements AutoCloseable {
         createStoresTable();
         createShoppingListTable();
         createItemsTable();
+        createShoppingListItemsTables();
     }
 
     private void createSessionsTable() throws SQLException {
@@ -70,10 +77,18 @@ public class Database implements AutoCloseable {
         }
     }
 
+    private void createShoppingListItemsTables() throws SQLException {
+        try (PreparedStatement stmt = db.prepareStatement(DatabaseQueries.CREATE_SHOPPING_LIST_ITEMS)) {
+            stmt.executeUpdate();
+        } catch (final Exception ignored) {
+        }
+    }
+
     public void updateTableQuery(final String query) throws SQLException {
         try (PreparedStatement stmt = db.prepareStatement(query)) {
             stmt.executeUpdate();
         } catch (final Exception ignored) {
+            System.out.println("");
         }
     }
 

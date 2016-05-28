@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">EZ Shopper</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="configure_ip_address">Configure I.P.</string>
+    <string name="configure_phone_number">Configure Phone Number</string>
+    <string name="add_item">Add Item</string>
+    <string name="new_item_name">New Item Name</string>
+    <string name="remove_items">Remove Green Items</string>
+    <string name="no_items">No Items Available</string>
+    <string name="no_shopping_lists">No Shopping Lists Available</string>
+    <string name="filter_results">Filter Results</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="Found">Found</string>
+    <string name="NotFound">Not Found</string>
+    <string name="add_shopping_list">Add Shopping List</string>
+    <string name="remove_shopping_list">Remove Shopping List</string>
+    <string name="new_shopping_list_name">New Shopping List Name</string>
+</resources>

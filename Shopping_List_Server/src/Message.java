@@ -7,14 +7,14 @@ public class Message {
     private Session session;
     private ByteCommand command;
     private Item item;
-    private List<Integer> itemIds;
-    private Shopping_List shopping_list;
+    private List<Item> items;
+    private ShoppingList shopping_list;
 
-    public Shopping_List getShopping_list() {
+    public ShoppingList getShopping_list() {
         return shopping_list;
     }
 
-    public void setShopping_list(Shopping_List sl) {
+    public void setShopping_list(ShoppingList sl) {
         shopping_list = sl;
     }
 
@@ -42,11 +42,11 @@ public class Message {
         this.item = item;
     }
 
-    public List<Integer> getItemIds() {
-        return itemIds;
+    public List<Item> getItems() {
+        return items;
     }
 
-    public void setItemIds(final List<Integer> itemIds) {
-        this.itemIds = itemIds;
+    public void setItemIds(final List<Item> items) {
+        this.items = items;
     }
 }

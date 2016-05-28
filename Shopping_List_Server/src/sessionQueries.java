@@ -3,21 +3,21 @@
  */
 public class sessionQueries {
 
-    public static String createSession(final String sessionPhoneNumber, final String sessionAuthCode) {
-        return String.format("INSERT INTO Sessions (SessionPhoneNumber, SessionAuthCode) " +
+    public static final String createSession(final String sessionPhoneNumber, final String sessionAuthCode) {
+        return String.format("INSERT INTO %s (SessionPhoneNumber, SessionAuthCode) " +
                 "VALUES ('%s', '%s') " +
-                "RETURNING SessionId;", sessionPhoneNumber, sessionAuthCode);
+                "RETURNING SessionId;", Database.SessionsTableName, sessionPhoneNumber, sessionAuthCode);
     }
 
-    public static String setSessionAuthCodeByPhoneNumber(final String sessionPhoneNumber, final String sessionAuthCode) {
-        return String.format("UPDATE Sessions " +
+    public static final String setSessionAuthCodeByPhoneNumber(final String sessionPhoneNumber, final String sessionAuthCode) {
+        return String.format("UPDATE %s " +
                 "SET SessionAuthCode = '%s' " +
-                "WHERE SessionPhoneNumber = '%s';", sessionAuthCode, sessionPhoneNumber);
+                "WHERE SessionPhoneNumber = '%s';", Database.SessionsTableName, sessionAuthCode, sessionPhoneNumber);
     }
 
-    public static String getSessionIdByPhoneNumberAndAuthCode(final String sessionPhoneNumber, final String authCode) {
+    public static final String getSessionIdByPhoneNumberAndAuthCode(final String sessionPhoneNumber, final String authCode) {
         return String.format("SELECT SessionId " +
-                "FROM Sessions " +
-                "WHERE SessionPhoneNumber = '%s' AND SessionAuthCode = '%s';", sessionPhoneNumber, authCode);
+                "FROM %s " +
+                "WHERE SessionPhoneNumber = '%s' AND SessionAuthCode = '%s';", Database.SessionsTableName, sessionPhoneNumber, authCode);
     }
 }

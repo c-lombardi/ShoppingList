@@ -62,8 +62,7 @@ public class Store implements CRUD<Store> {
                     }
                 }
             }
-        } catch (Exception ex) {
-
+        } catch (Exception ignored) {
         } finally {
             return this;
         }
@@ -113,8 +112,7 @@ public class Store implements CRUD<Store> {
             } else if (Name != null) {
                 db.updateTableQuery(StoreQueries.removeStore(Name));
             }
-        } catch (Exception ex) {
-
+        } catch (Exception ignored) {
         } finally {
             return this;
         }

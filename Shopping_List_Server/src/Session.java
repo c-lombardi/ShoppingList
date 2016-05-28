@@ -9,16 +9,16 @@ import java.util.UUID;
  * Created by Christopher on 10/26/2015.
  */
 public class Session implements java.io.Serializable {
-    private UUID SessionId;
+    private String SessionId;
     private String SessionPhoneNumber;
     private String SessionAuthCode;
 
-    public UUID getSessionId() {
+    public String getSessionId() {
         return SessionId;
     }
 
     public void setSessionId(final UUID sId) {
-        SessionId = sId;
+        SessionId = sId.toString();
     }
 
     public String getSessionPhoneNumber() {
@@ -42,7 +42,7 @@ public class Session implements java.io.Serializable {
             try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.getSessionIdByPhoneNumberAndAuthCode(SessionPhoneNumber, SessionAuthCode))) {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        SessionId = UUID.fromString(rs.getString("SessionId"));
+                        SessionId = rs.getString("SessionId");
                         return true;
                     }
                     return false;

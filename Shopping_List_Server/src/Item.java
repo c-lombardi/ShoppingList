@@ -2,7 +2,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by Christopher on 9/1/2015.
@@ -12,26 +11,29 @@ public class Item implements CRUD<Item> {
     private String Name;
     private Store Store;
     private float BestPrice;
-    private UUID SessionId;
+    private String SessionId;
     private int ShoppingListId;
+    private ItemStatus ItemStatus;
 
     public Item() {
     }
 
-    private Item(final int id, final String n, final Store s, final float bp, final UUID sId, final int slId) {
+    private Item(final int id, final String n, final Store s, final float bp, final String sId, final int slId, final ItemStatus itemStatus) {
         setId(id);
         setName(n);
         setSessionId(sId);
         setStore(s);
         setBestPrice(bp);
         setShoppingListId(slId);
+        setItemStatus(itemStatus);
     }
 
-    private Item(final int id, final String n, final UUID sId, final int slId) {
+    private Item(final int id, final String n, final String sId, final int slId, final ItemStatus itemStatus) {
         setId(id);
         setName(n);
         setSessionId(sId);
         setShoppingListId(slId);
+        setItemStatus(itemStatus);
     }
 
     public int getShoppingListId() {return ShoppingListId; }
@@ -44,11 +46,11 @@ public class Item implements CRUD<Item> {
         BestPrice = bestPrice;
     }
 
-    public UUID getSessionId() {
+    public String getSessionId() {
         return SessionId;
     }
 
-    public void setSessionId(final UUID sessionId) {
+    public void setSessionId(final String sessionId) {
         SessionId = sessionId;
     }
 
@@ -78,6 +80,14 @@ public class Item implements CRUD<Item> {
         Store = store;
     }
 
+    public void setItemStatus(final ItemStatus itemStatus) {
+        ItemStatus = itemStatus;
+    }
+
+    public ItemStatus getItemStatus() {
+        return ItemStatus;
+    }
+
     @Override
     public Item create() {
         try (final Database db = new Database()) {
@@ -88,9 +98,11 @@ public class Item implements CRUD<Item> {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         Id = rs.getInt("ItemId");
+                        ItemStatus = ItemStatus.valueOf(rs.getString("ItemStatus"));
                     }
                 }
             }
+            update(true);
         } catch (Exception ex) {
             update(true);
             read();
@@ -107,24 +119,13 @@ public class Item implements CRUD<Item> {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             Name = rs.getString("ItemName");
-                            SessionId = UUID.fromString(rs.getString("SessionId"));
+                            SessionId = rs.getString("SessionId");
                             BestPrice = rs.getFloat("BestPrice");
+                            ShoppingListId = rs.getInt("ShoppingListId");
+                            ItemStatus = ItemStatus.valueOf(rs.getString("ItemStatus"));
                             Store = new Store();
                             Store.setId(rs.getInt("StoreId"));
-                            Store = Store.read();
-                        }
-                    }
-                }
-            } else if (Name != null) {
-                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemByName(Name))) {
-                    try (final ResultSet rs = stmt.executeQuery()) {
-                        while (rs.next()) {
-                            Id = rs.getInt("ItemId");
-                            SessionId = UUID.fromString(rs.getString("SessionId"));
-                            BestPrice = rs.getFloat("BestPrice");
-                            Store = new Store();
-                            Store.setId(rs.getInt("StoreId"));
-                            Store = Store.read();
+                            Store.setName(rs.getString("StoreName"));
                         }
                     }
                 }
@@ -136,7 +137,7 @@ public class Item implements CRUD<Item> {
         }
     }
 
-    public List<Item> readAll(final boolean fromLibrary, final UUID sId, final int slId) {
+    public List<Item> readAll(final boolean fromLibrary, final String sId, final int slId) {
         final List<Item> returnList = new ArrayList<>();
         try (final Database db = new Database()) {
             if (!fromLibrary) {
@@ -146,43 +147,40 @@ public class Item implements CRUD<Item> {
                             Store store = new Store();
                             store.setId(rs.getInt("StoreId"));
                             store.setName(rs.getString("StoreName"));
-                            returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), store, rs.getFloat("BestPrice"), UUID.fromString(rs.getString("SessionId")), rs.getInt("ShoppingListId")));
+                            returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), store, rs.getFloat("BestPrice"), sId, slId, ItemStatus.valueOf(rs.getString("ItemStatus"))));
                         }
                     }
                 }
             } else {
-                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromLibrary(sId))) {
+                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromLibrary(sId, slId))) {
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
-                            returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), UUID.fromString(rs.getString("SessionId")), rs.getInt("ShoppingListId")));
+                            returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), sId, slId, ItemStatus.Default));
                         }
                     }
                 }
             }
-        } catch (Exception ex) {
-            System.out.println("Fail");
-            System.out.println(ex);
+        } catch (Exception ignored) {
         } finally {
             return returnList;
         }
     }
 
-    public List<Item> getLibraryItemsThatContain(final String itemNameSearchString) {
+    public List<Item> getLibraryItemsThatContain(final String itemNameSearchString, final int slId) {
         final List<Item> returnList = new ArrayList<>();
         try (final Database db = new Database()) {
-            try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getLibraryItemsWithCharactersAndSessionId(itemNameSearchString, SessionId))) {
+            try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getLibraryItemsWithCharactersAndSessionId(itemNameSearchString, getSessionId(), slId))) {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         Item foundItem = new Item();
                         foundItem.setId(rs.getInt("ItemId"));
                         foundItem.setName(rs.getString("ItemName"));
+                        foundItem.setItemStatus(ItemStatus.Default);
                         returnList.add(foundItem);
                     }
                 }
             }
-        } catch (Exception ex) {
-            System.out.println("Fail");
-            System.out.println(ex);
+        } catch (Exception ignored) {
         } finally {
             return returnList;
         }
@@ -190,30 +188,23 @@ public class Item implements CRUD<Item> {
 
     @Override
     public Item update(final boolean justFlipListActive) {
-        try (final Database db = new Database()) {
-            if (Name != null) {
-                if (Store != null) {
-                    Store = Store.create();
-                }
-                if (!justFlipListActive) {
-                    if (Id != 0) {
+        if (Name != null) {
+            if (Store != null) {
+                Store = Store.create();
+            }
+            try (final Database db = new Database()) {
+                    if (!justFlipListActive) {
                         db.updateTableQuery(ItemQueries.updateItemById(this));
                     } else {
-                        db.updateTableQuery(ItemQueries.updateItemByName(this));
+                        db.updateTableQuery(ItemQueries.addItemToShoppingList(getId(), getShoppingListId()));
                     }
-                } else {
-                    if (Id != 0) {
-                        db.updateTableQuery(ItemQueries.makeActiveById(this));
-                    } else {
-                        db.updateTableQuery(ItemQueries.makeActiveByName(this));
-                    }
-                }
+            } catch (Exception ex) {
+                create();
+            } finally {
+                return this;
             }
-        } catch (Exception ex) {
-            create();
-        } finally {
-            return this;
         }
+        return this;
     }
 
     @Override
@@ -221,9 +212,9 @@ public class Item implements CRUD<Item> {
         try (final Database db = new Database()) {
             if (Id != 0) {
                 if (!deleteFromLibrary) {
-                    db.updateTableQuery(ItemQueries.removeItemFromList(Id));
+                    db.updateTableQuery(ItemQueries.removeItemFromList(Id, getShoppingListId()));
                 } else {
-                    db.updateTableQuery(ItemQueries.removeItemFromLibrary(Id));
+                    db.updateTableQuery(ItemQueries.addItemToShoppingList(Id, getShoppingListId()));
                 }
             }
         } catch (Exception ex) {
@@ -233,32 +224,37 @@ public class Item implements CRUD<Item> {
         }
     }
 
-    public List<Item> reAdd(final List<Integer> itemIds, final int slId) {
+    public List<Item> reAdd(final List<Item> items, final int slId) {
         final List<Item> returnList = new ArrayList<>();
         try (final Database db = new Database()) {
-            db.updateTableQuery(ItemQueries.reAddItemsByIds(itemIds));
-            try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemsByIds(itemIds, slId))) {
+            db.updateTableQuery(ItemQueries.reAddItemsByIds(items, slId));
+            try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemsByIds(items, slId))) {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
-                        Store store = new Store();
+                        final Store store = new Store();
                         store.setId(rs.getInt("StoreId"));
                         store.setName(rs.getString("StoreName"));
-                        returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), store, rs.getFloat("BestPrice"), UUID.fromString(rs.getString("SessionId")), rs.getInt("ShoppingListId")));
+                        returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), store, rs.getFloat("BestPrice"), rs.getString("SessionId"), rs.getInt("ShoppingListId"), ItemStatus.valueOf(rs.getString("ItemStatus"))));
                     }
                 }
             }
-        } catch (Exception ex) {
-
+        } catch (Exception ignored) {
         } finally {
             return returnList;
         }
     }
 
-    public void removeItems(final List<Integer> itemIds) {
+    public void removeItems(final List<Item> items, final int slId) {
         try (final Database db = new Database()) {
-            db.updateTableQuery(ItemQueries.removeItemsByIds(itemIds));
-        } catch (Exception ex) {
+            db.updateTableQuery(ItemQueries.removeItemsByIds(items, slId));
+        } catch (Exception ignored) {
+        }
+    }
 
+    public void updateItemStatus() {
+        try (final Database db = new Database()) {
+            db.updateTableQuery(ItemQueries.changeItemStatusByItemId(this));
+        } catch (Exception ignored) {
         }
     }
 }
