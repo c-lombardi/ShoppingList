@@ -42,7 +42,7 @@ public class LibraryItem_CRUD extends CRUD.SetUpCRUDOperations<Item> {
     }
 
     @Override
-    public void addToArrayList(final Item newItem) {
+    public void addToOrUpdateArrayList(final Item newItem) {
         try {
             Item foundItem = null;
             for (final Item i : getTypeList()) {

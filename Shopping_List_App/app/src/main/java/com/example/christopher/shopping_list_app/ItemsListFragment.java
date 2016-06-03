@@ -137,7 +137,7 @@ public class ItemsListFragment extends Fragment {
                     final List<Item> itemLibraryChosenArrayList = new ArrayList<>();
                     for (final Item i : libraryItem_crud.getItemLibraryChosenHashSet()) {
                         itemLibraryChosenArrayList.add(i);
-                        getItems_CRUD().addToArrayList(i);
+                        getItems_CRUD().addToOrUpdateArrayList(i);
                     }
                     getItems_CRUD().getArrayAdapter().notifyDataSetChanged();
                     new Client.ClientBuilder(ByteCommand.reAddItems, getActivity().getPreferences(Context.MODE_PRIVATE).getString(StaticVariables.IpAddressString, StaticVariables.ActualHardCodedIpAddress), ItemsListFragment.this).Items(itemLibraryChosenArrayList).build().execute();

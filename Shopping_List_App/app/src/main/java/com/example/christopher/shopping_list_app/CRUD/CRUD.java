@@ -75,7 +75,7 @@ public interface CRUD {
 
 
 
-        public abstract void addToArrayList(T t);
+        public abstract void addToOrUpdateArrayList(T t);
         public abstract void removeFromArrayList(T t);
 
         public abstract class typeListAdapter extends ArrayAdapter<T> {

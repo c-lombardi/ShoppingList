@@ -239,6 +239,7 @@ public class Item implements CRUD<Item> {
                 }
             }
         } catch (Exception ignored) {
+            System.out.println(ignored);
         } finally {
             return returnList;
         }

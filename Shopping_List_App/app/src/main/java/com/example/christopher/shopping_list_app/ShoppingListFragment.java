@@ -59,7 +59,7 @@ public class ShoppingListFragment extends Fragment {
     }
 
     public static void AddToOrReplaceShoppingListArrayList(final ShoppingList newShopping_List) {
-        shopping_list_crud.addToArrayList(newShopping_List);
+        shopping_list_crud.addToOrUpdateArrayList(newShopping_List);
     }
 
     public static void RemoveFromShoppingListArrayList(final ShoppingList removedShopping_List) {

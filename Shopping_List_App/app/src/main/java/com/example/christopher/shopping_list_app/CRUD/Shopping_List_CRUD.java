@@ -122,7 +122,7 @@ public class Shopping_List_CRUD extends CRUD.SetUpCRUDOperations<ShoppingList> {
     }
 
     @Override
-    public void addToArrayList(ShoppingList newShoppingList) {
+    public void addToOrUpdateArrayList(ShoppingList newShoppingList) {
         try {
             if(newShoppingList != null) {
                 removeFromArrayList(newShoppingList);

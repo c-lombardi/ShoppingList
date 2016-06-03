@@ -10,7 +10,8 @@
         android:id="@+id/itemName"
         android:singleLine="true"
         android:layout_gravity="center_horizontal"
-        android:hint="Item Name" />
+        android:hint="Item Name"
+        android:maxLength="50" />
 
     <EditText
         android:layout_width="match_parent"
@@ -20,7 +21,8 @@
         android:id="@+id/bestPrice"
         android:singleLine="true"
         android:layout_gravity="center_horizontal"
-        android:hint="Best Price" />
+        android:hint="Best Price"
+        android:maxLength="12" />
 
     <EditText
         android:layout_width="match_parent"
@@ -28,5 +30,6 @@
         android:id="@+id/storeName"
         android:singleLine="true"
         android:layout_gravity="center_horizontal"
-        android:hint="Store Name" />
+        android:hint="Store Name"
+        android:maxLength="50" />
 </LinearLayout>

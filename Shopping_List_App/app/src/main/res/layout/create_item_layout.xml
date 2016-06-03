@@ -27,7 +27,8 @@
         android:hint="@string/new_item_name"
         android:singleLine="true"
         android:layout_row="1"
-        android:layout_below="@+id/AddItemTextId" />
+        android:layout_below="@+id/AddItemTextId"
+        android:maxLength="50" />
     <ListView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

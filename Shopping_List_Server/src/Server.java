@@ -28,10 +28,6 @@ public class Server {
                                     messageObject.setItem(i);
                                     connection.sendTCP(messageObject);
                                 }
-                                //this block is for when there are no items in the list, so the sessionId is not sent back. This occurs when a list is empty
-                                messageObject.setItem(null);
-                                connection.sendTCP(messageObject);
-                                //end weird block
                                 break;
                             }
                             case addItem: {
@@ -103,7 +99,8 @@ public class Server {
                             }
                             case updateItemStatus: {
                                 messageObject.getItem().updateItemStatus();
-                                connection.sendTCP(messageObject.getItem().read());
+                                messageObject.getItem().read();
+                                connection.sendTCP(messageObject);
                                 break;
                             }
                         }

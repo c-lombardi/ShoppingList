@@ -107,7 +107,7 @@ public class ItemQueries {
     }
 
     public static final String getItemsByIds(final List<Item> items, final int slId) {
-        StringBuilder queryStringBuilder = new StringBuilder(String.format("SELECT i.ItemId, i.ItemName, i.SessionId, i.BestPrice, s.StoreId, s.StoreName, sli.ShoppingListId " +
+        StringBuilder queryStringBuilder = new StringBuilder(String.format("SELECT i.ItemId, i.ItemName, i.SessionId, i.BestPrice, s.StoreId, s.StoreName, sli.ShoppingListId, sli.ItemStatus " +
                 "FROM %s i " +
                 "LEFT JOIN %s s ON i.StoreId = s.StoreId " +
                 "INNER JOIN %s sli ON sli.ItemId = i.ItemId AND sli.ShoppingListId = %d", Database.ItemsTableName, Database.StoresTableName, Database.ShoppingListItemsTableName, slId));

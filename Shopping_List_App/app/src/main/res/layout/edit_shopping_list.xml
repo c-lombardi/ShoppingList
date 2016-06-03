@@ -10,6 +10,7 @@
         android:id="@+id/edit_shopping_listName"
         android:singleLine="true"
         android:layout_gravity="center_horizontal"
-        android:hint="Shopping List Name" />
+        android:hint="Shopping List Name"
+        android:maxLength="50" />
 
 </LinearLayout>

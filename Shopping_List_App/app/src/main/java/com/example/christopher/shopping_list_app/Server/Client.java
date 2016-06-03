@@ -7,6 +7,7 @@ import com.esotericsoftware.kryonet.Listener;
 import com.example.christopher.shopping_list_app.ItemsListFragment;
 import com.example.christopher.shopping_list_app.Models.Item;
 import com.example.christopher.shopping_list_app.Models.ItemStatus;
+import com.example.christopher.shopping_list_app.Models.ItemStatusHelper;
 import com.example.christopher.shopping_list_app.Models.Session;
 import com.example.christopher.shopping_list_app.Models.ShoppingList;
 import com.example.christopher.shopping_list_app.Models.Store;
@@ -39,15 +40,15 @@ public class Client extends AsyncTask<String, Client, String> {
                 message = (Message) object;
                 switch (message.getCommand()) {
                     case getItems: {
-                        ItemsListFragment.getItems_CRUD().addToArrayList(message.getItem());
+                        ItemsListFragment.getItems_CRUD().addToOrUpdateArrayList(message.getItem());
                         break;
                     }
                     case addItem: {
-                        ItemsListFragment.getItems_CRUD().addToArrayList(message.getItem());
+                        ItemsListFragment.getItems_CRUD().addToOrUpdateArrayList(message.getItem());
                         break;
                     }
                     case updateItem: {
-                        ItemsListFragment.getItems_CRUD().addToArrayList(message.getItem());
+                        ItemsListFragment.getItems_CRUD().addToOrUpdateArrayList(message.getItem());
                         break;
                     }
                     case removeItemFromList: {
@@ -55,11 +56,11 @@ public class Client extends AsyncTask<String, Client, String> {
                         break;
                     }
                     case getLibrary: {
-                        ItemsListFragment.getLibraryItems_CRUD().addToArrayList(message.getItem());
+                        ItemsListFragment.getLibraryItems_CRUD().addToOrUpdateArrayList(message.getItem());
                         break;
                     }
                     case reAddItems: {
-                        ItemsListFragment.getItems_CRUD().addToArrayList(message.getItem());
+                        ItemsListFragment.getItems_CRUD().addToOrUpdateArrayList(message.getItem());
                         break;
                     }
                     case removeItemsFromList: {
@@ -67,7 +68,7 @@ public class Client extends AsyncTask<String, Client, String> {
                         break;
                     }
                     case getLibraryItemsThatContain: {
-                        ItemsListFragment.getLibraryItems_CRUD().addToArrayList(message.getItem());
+                        ItemsListFragment.getLibraryItems_CRUD().addToOrUpdateArrayList(message.getItem());
                         break;
                     }
                     case createShoppingList: {
@@ -87,11 +88,15 @@ public class Client extends AsyncTask<String, Client, String> {
                         break;
                     }
                     case updateItemStatus: {
-                        ItemsListFragment.getItems_CRUD().addToArrayList(message.getItem());
+                        ItemsListFragment.getItems_CRUD().addToOrUpdateArrayList(message.getItem());
                         break;
                     }
                 }
-                response = ByteCommandHelper.ByteCommandStringValue(message.getCommand());
+                if(!message.getCommand().equals(ByteCommand.updateItemStatus)) {
+                    response = ByteCommandHelper.ByteCommandStringValue(message.getCommand());
+                } else {
+                    response = ItemStatusHelper.ItemStatusHelperStringValue(message.getItem().getItemStatus());
+                }
             }
         }
 

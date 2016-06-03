@@ -173,7 +173,7 @@ public class Shopping_List extends AppCompatActivity {
     }
 
     public static void showAuthCodeDialog(final Activity activity) {
-        if (session.getSessionAuthCode().isEmpty() && !session.getSessionPhoneNumber().isEmpty()) {
+        if (session.getSessionId() == null || session.getSessionAuthCode().isEmpty()) {
             final AlertDialog.Builder alert = new AlertDialog.Builder(activity);
             alert.setTitle("Please enter your authorization code.");
             alert.setMessage("Or request a new one be sent to you at " + session.getSessionPhoneNumber());
