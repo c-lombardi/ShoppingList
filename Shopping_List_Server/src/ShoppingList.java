@@ -99,8 +99,7 @@ public class ShoppingList implements CRUD<ShoppingList> {
             if (ShoppingListName != null) {
                 db.updateTableQuery(ShoppingListQueries.RENAME_SHOPPING_LIST_BY_SHOPPING_LIST_ID(ShoppingListId, ShoppingListName));
             }
-        } catch (Exception ex) {
-            create();
+        } catch (Exception ignored) {
         } finally {
             return this;
         }

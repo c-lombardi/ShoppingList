@@ -3,6 +3,7 @@ package com.example.christopher.shopping_list_app.CRUD;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,14 +30,50 @@ import static com.example.christopher.shopping_list_app.StaticHelpers.lengthen;
  * Created by Christopher on 3/18/2016.
  */
 public class Shopping_List_CRUD extends CRUD.SetUpCRUDOperations<ShoppingList> {
+    private SwipeRefreshLayout swipeRefreshLayout;
     public Shopping_List_CRUD(final ShoppingListFragment f) {
         setTypeList(new ArrayList<ShoppingList>());
         setFragment(f);
         setArrayAdapter(new Shopping_List_CRUD_ListViewAdapter(f.getContext(), getTypeList()));
+        SetUpSwipeRefreshLayout();
         SetUpListView((ListView) f.getView().findViewById(R.id.shopping_list_ListView));
         getListView().setEmptyView(f.getView().findViewById(R.id.empty_Shopping_List_list));
         getListView().setAdapter(getArrayAdapter());
         new Client.ClientBuilder(ByteCommand.getListOfShoppingLists, getFragment().getActivity().getPreferences(getFragment().getActivity().MODE_PRIVATE).getString(StaticVariables.IpAddressString, StaticVariables.ActualHardCodedIpAddress), getFragment()).build().execute();
+    }
+
+    private void SetUpSwipeRefreshLayout() {
+        swipeRefreshLayout = (SwipeRefreshLayout) getFragment().getView().findViewById(R.id.shopping_list_swipe_container);
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Shopping_List.showPhoneNumberDialog(false, getFragment().getActivity());
+                Shopping_List.showAuthCodeDialog(getFragment().getActivity());
+                getListView().setEnabled(false);
+                new Client.ClientBuilder(ByteCommand.getListOfShoppingLists, getFragment().getActivity().getPreferences(Context.MODE_PRIVATE).getString(StaticVariables.IpAddressString, StaticVariables.ActualHardCodedIpAddress), getFragment()).build().execute();
+            }
+        });
+    }
+
+
+    public void setSwipeRefreshlayoutRefreshing(final boolean refresh) {
+        try {
+            if (swipeRefreshLayout != null && refresh) {
+                swipeRefreshLayout.setRefreshing(refresh);
+                getListView().setEnabled(true);
+            } else if(swipeRefreshLayout != null){
+                swipeRefreshLayout.setRefreshing(refresh);
+            }
+        } catch (final Exception ignored) {
+        }
+    }
+
+    public void refreshSwipeRefreshLayout() {
+        swipeRefreshLayout.post(new Runnable() {
+            @Override public void run() {
+                new Client.ClientBuilder(ByteCommand.getListOfShoppingLists, getFragment().getActivity().getPreferences(Context.MODE_PRIVATE).getString(StaticVariables.IpAddressString, StaticVariables.ActualHardCodedIpAddress), getFragment()).build().execute();
+            }
+        });
     }
 
     private void SetUpListView(final ListView listView) {

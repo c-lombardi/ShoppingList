@@ -133,6 +133,9 @@ public class Client extends AsyncTask<String, Client, String> {
         if(!isLibrary && message.getCommand().equals(ByteCommand.getItems)) {
             ItemsListFragment.getItems_CRUD().setSwipeRefreshlayoutRefreshing(true);
         }
+        if(!isLibrary && ShoppingListFragment.getShopping_list_crud() != null && message.getCommand().equals(ByteCommand.getListOfShoppingLists)) {
+            ShoppingListFragment.getShopping_list_crud().setSwipeRefreshlayoutRefreshing(true);
+        }
     }
 
     @Override
@@ -171,6 +174,7 @@ public class Client extends AsyncTask<String, Client, String> {
 
             } else if (fragment.getClass().equals(ShoppingListFragment.class)) {
                 ShoppingListFragment.getShopping_list_crud().NotifyArrayListAdapterShoppingListChanged();
+                ShoppingListFragment.getShopping_list_crud().setSwipeRefreshlayoutRefreshing(false);
                 //Toast.makeText(fragment.getContext(), response, Toast.LENGTH_SHORT).show();
             }
             Shopping_List.setActiveShopping_List(message.getShopping_list());
