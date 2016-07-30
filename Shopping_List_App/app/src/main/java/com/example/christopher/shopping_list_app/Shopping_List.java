@@ -44,9 +44,7 @@ public class Shopping_List extends AppCompatActivity {
             session.setSessionId(getPreferences(MODE_PRIVATE).getString(StaticVariables.SessionIdString, ""));
         session.setSessionPhoneNumber(getPreferences(MODE_PRIVATE).getString(StaticVariables.SessionPhoneNumberString, ""));
         session.setSessionAuthCode(getPreferences(MODE_PRIVATE).getString(StaticVariables.SessionAuthCodeString, ""));
-
-        showPhoneNumberDialog(false, this);
-        showAuthCodeDialog(this);
+        showPhoneNumberAndAuthCodeDialogs(false, this);
     }
 
     @Override
@@ -84,6 +82,7 @@ public class Shopping_List extends AppCompatActivity {
             System.exit(0);
         } else {
             super.onBackPressed();
+            shoppingListFragment.getShopping_list_crud().refreshSwipeRefreshLayout();
         }
     }
 
@@ -129,7 +128,12 @@ public class Shopping_List extends AppCompatActivity {
 
     //START Library Section
 
-    public static void showPhoneNumberDialog(final boolean override, final Activity activity) {
+    public static void showPhoneNumberAndAuthCodeDialogs(final boolean override, final Activity activity){
+        showPhoneNumberDialog(override, activity);
+        showAuthCodeDialog(activity);
+    }
+
+    private static void showPhoneNumberDialog(final boolean override, final Activity activity) {
         if (session.getSessionPhoneNumber().isEmpty() || override) {
             final AlertDialog.Builder alert = new AlertDialog.Builder(activity);
             alert.setTitle("Enter Your Phone Number To Proceed");
@@ -172,8 +176,8 @@ public class Shopping_List extends AppCompatActivity {
         }
     }
 
-    public static void showAuthCodeDialog(final Activity activity) {
-        if (session.getSessionId() == null || session.getSessionAuthCode().isEmpty()) {
+    private static void showAuthCodeDialog(final Activity activity) {
+        if ((session.getSessionId() == null || session.getSessionAuthCode().isEmpty()) && !session.getSessionPhoneNumber().isEmpty()) {
             final AlertDialog.Builder alert = new AlertDialog.Builder(activity);
             alert.setTitle("Please enter your authorization code.");
             alert.setMessage("Or request a new one be sent to you at " + session.getSessionPhoneNumber());

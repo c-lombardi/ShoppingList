@@ -1,7 +1,7 @@
-import java.sql.PreparedStatement;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Store implements CRUD<Store> {
@@ -28,7 +28,8 @@ public class Store implements CRUD<Store> {
     @Override
     public Store create() {
         try (final Database db = new Database()) {
-            try (final PreparedStatement stmt = db.selectTableQuery(StoreQueries.addStore(Name))) {
+            try (final PreparedSelectStatement stmt = db.selectTableQuery(StoreQueries.createStore())) {
+                stmt.setString(1, Name);
                 try (final ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         Id = rs.getInt("StoreId");
@@ -46,7 +47,8 @@ public class Store implements CRUD<Store> {
     public Store read() {
         try (final Database db = new Database()) {
             if (Id != 0) {
-                try (final PreparedStatement stmt = db.selectTableQuery(StoreQueries.getStoreById(Id))) {
+                try (final PreparedSelectStatement stmt = db.selectTableQuery(StoreQueries.getStoreById())) {
+                    stmt.setInt(1, Id);
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             Name = rs.getString("StoreName");
@@ -54,7 +56,8 @@ public class Store implements CRUD<Store> {
                     }
                 }
             } else if (Name != null) {
-                try (final PreparedStatement stmt = db.selectTableQuery(StoreQueries.getStoreByName(Name))) {
+                try (final PreparedSelectStatement stmt = db.selectTableQuery(StoreQueries.getStoreByName())) {
+                    stmt.setString(1, Name);
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             Id = rs.getInt("StoreId");
@@ -69,22 +72,7 @@ public class Store implements CRUD<Store> {
     }
 
     public List<Store> readAll(final boolean fromLibrary) {
-        final List<Store> returnList = new ArrayList<>();
-        try (final Database db = new Database()) {
-            try (final PreparedStatement stmt = db.selectTableQuery(StoreQueries.getCountFromStores())) {
-                try (final ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        Store store = new Store();
-                        store.setId(rs.getInt("StoreId"));
-                        store.setName(rs.getString("StoreName"));
-                        returnList.add(store);
-                    }
-                }
-            }
-        } catch (Exception ex) {
-        } finally {
-            return returnList;
-        }
+        throw new NotImplementedException();
     }
 
     @Override
@@ -92,7 +80,11 @@ public class Store implements CRUD<Store> {
         try (final Database db = new Database()) {
             if (Name != null) {
                 if (Id != 0) {
-                    db.updateTableQuery(StoreQueries.updateStore(this));
+                    try (final PreparedUpdateStatement stmt = db.updateTableQuery(StoreQueries.updateStore())) {
+                        stmt.setInt(1, getId());
+                        stmt.setString(2, getName());
+                        stmt.executeUpdate();
+                    }
                 } else {
                     throw new SQLException();
                 }
@@ -106,15 +98,6 @@ public class Store implements CRUD<Store> {
 
     @Override
     public Store delete(final boolean deleteFromLibrary) {
-        try (final Database db = new Database()) {
-            if (Id != 0) {
-                db.updateTableQuery(StoreQueries.removeStore(Id));
-            } else if (Name != null) {
-                db.updateTableQuery(StoreQueries.removeStore(Name));
-            }
-        } catch (Exception ignored) {
-        } finally {
-            return this;
-        }
+        throw new NotImplementedException();
     }
 }

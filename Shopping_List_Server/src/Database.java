@@ -2,10 +2,9 @@
  * Created by Christopher on 9/1/2015.
  */
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import jdk.internal.org.objectweb.asm.Type;
+
+import java.sql.*;
 
 public class Database implements AutoCloseable {
     private static final String databaseName = "shopping_list_database";
@@ -14,28 +13,39 @@ public class Database implements AutoCloseable {
     private static final String username = "postgres";
     private static final String password = "password";
     private static final String createDatabase = "CREATE DATABASE " + databaseName;
-    private static Connection db = null;
+    private static ConnectionWrapper db;
 
-    public static final String SessionsTableName = "Sessions";
-    public static final String ItemsTableName = "Items";
-    public static final String ShoppingListsTableName = "Shopping_Lists";
-    public static final String ShoppingListItemsTableName = "ShoppingListItems";
-    public static final String StoresTableName = "Stores";
+    public static String ItemIdAndType = "ItemId INT";
+    public static String ItemNameAndType = "ItemName VARCHAR(50)";
+    public static String BestPriceAndType = "BestPrice REAL";
+    public static String ItemStatusAndType = "ItemStatus VARCHAR(8)";
+
+    public static String StoreIdAndType = "StoreId INT";
+    public static String StoreNameAndType = "StoreName VARCHAR(50)";
+
+    public static String SessionIdAndType = "SessionId UUID";
+    public static String SessionPhoneNumberAndType = "SessionPhoneNumber VARCHAR(12)";
+    public static String SessionAuthCode = "SessionAuthCode VARCHAR(6)";
+
+    public static String ShoppingListIdAndType = "ShoppingListId INT";
+    public static String ShoppingListNameAndType = "ShoppingListName VARCHAR(50)";
 
     public Database() throws ClassNotFoundException, SQLException {
         Class.forName("org.postgresql.Driver");
+        Connection connection;
         try {
-            db = DriverManager.getConnection(dbUrl, username, password);
+            connection = DriverManager.getConnection(dbUrl, username, password);
         } catch (Exception ex) {
-            db = DriverManager.getConnection(url, username, password);
+            connection = DriverManager.getConnection(url, username, password);
             createDatabase();
-            db = DriverManager.getConnection(dbUrl, username, password);
+            connection = DriverManager.getConnection(dbUrl, username, password);
             createTables();
         }
+        db = new ConnectionWrapper(connection);
     }
 
     private void createDatabase() throws SQLException {
-        try (PreparedStatement stmt = db.prepareStatement(createDatabase)) {
+        try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(createDatabase)) {
             stmt.executeUpdate();
         } catch (final Exception ignored) {
         }
@@ -50,50 +60,74 @@ public class Database implements AutoCloseable {
     }
 
     private void createSessionsTable() throws SQLException {
-        try (PreparedStatement stmt = db.prepareStatement(DatabaseQueries.CREATE_SESSION)) {
+        try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(DatabaseQueries.CREATE_SESSION)) {
             stmt.executeUpdate();
         } catch (final Exception ignored) {
+        }
+        for(String sql : SessionStoredProcedures.StoredProcedures){
+            try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(sql)){
+                stmt.executeUpdate();
+            }catch (final Exception ignored) {
+            }
         }
     }
 
     private void createShoppingListTable() throws SQLException {
-        try (PreparedStatement stmt = db.prepareStatement(DatabaseQueries.CREATE_SHOPPING_LISTS)) {
+        try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(DatabaseQueries.CREATE_SHOPPING_LISTS)) {
             stmt.executeUpdate();
         } catch (final Exception ignored) {
+        }
+        for(String sql : ShoppingListStoredProcedures.StoredProcedures){
+            try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(sql)){
+                stmt.executeUpdate();
+            }catch (final Exception ignored) {
+            }
         }
     }
 
     private void createStoresTable() throws SQLException {
-        try (PreparedStatement stmt = db.prepareStatement(DatabaseQueries.CREATE_STORE)) {
+        try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(DatabaseQueries.CREATE_STORE)) {
             stmt.executeUpdate();
         } catch (final Exception ignored) {
+        }
+        for(String sql : StoreStoredProcedures.StoredProcedures){
+            try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(sql)){
+                stmt.executeUpdate();
+            }catch (final Exception ignored) {
+            }
         }
     }
 
     private void createItemsTable() throws SQLException {
-        try (PreparedStatement stmt = db.prepareStatement(DatabaseQueries.CREATE_ITEM)) {
+        try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(DatabaseQueries.CREATE_ITEM)) {
             stmt.executeUpdate();
         } catch (final Exception ignored) {
+        }
+        for(String sql : ItemStoredProcedures.StoredProcedures){
+            try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(sql)){
+                stmt.executeUpdate();
+            }catch (final Exception ignored) {
+            }
         }
     }
 
     private void createShoppingListItemsTables() throws SQLException {
-        try (PreparedStatement stmt = db.prepareStatement(DatabaseQueries.CREATE_SHOPPING_LIST_ITEMS)) {
+        try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(DatabaseQueries.CREATE_SHOPPING_LIST_ITEMS)) {
             stmt.executeUpdate();
         } catch (final Exception ignored) {
         }
     }
 
-    public void updateTableQuery(final String query) throws SQLException {
-        try (PreparedStatement stmt = db.prepareStatement(query)) {
-            stmt.executeUpdate();
-        } catch (final Exception ignored) {
-            System.out.println("");
-        }
+    public PreparedUpdateStatement updateTableQuery(final String query) throws SQLException {
+        return db.prepareUpdateStatement(query);
     }
 
-    public PreparedStatement selectTableQuery(final String query) throws SQLException {
-        return db.prepareStatement(query);
+    public PreparedSelectStatement selectTableQuery(final String query) throws SQLException {
+        return db.prepareSelectStatement(query);
+    }
+
+    public Array CreateArray(final Object[] array, final Type arrayObjectTypes) throws SQLException {
+        return db.createArrayOf(array, arrayObjectTypes);
     }
 
     @Override

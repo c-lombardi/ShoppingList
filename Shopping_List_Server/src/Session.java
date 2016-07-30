@@ -1,6 +1,5 @@
 import com.twilio.sdk.TwilioRestException;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Random;
 import java.util.UUID;
@@ -39,7 +38,9 @@ public class Session implements java.io.Serializable {
 
     public boolean CheckSessionForAuthentication() {
         try (final Database db = new Database()) {
-            try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.getSessionIdByPhoneNumberAndAuthCode(SessionPhoneNumber, SessionAuthCode))) {
+            try (final PreparedSelectStatement stmt = db.selectTableQuery(sessionQueries.getSessionIdByPhoneNumberAndAuthCode())) {
+                stmt.setString(1, SessionPhoneNumber);
+                stmt.setString(2, SessionAuthCode);
                 try (final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         SessionId = rs.getString("SessionId");
@@ -56,7 +57,11 @@ public class Session implements java.io.Serializable {
     public void updateAuthCode() {
         SessionAuthCode = new SessionAuthCodeGenerator().Generate();
         try (final Database db = new Database()) {
-            db.updateTableQuery(sessionQueries.setSessionAuthCodeByPhoneNumber(SessionPhoneNumber, SessionAuthCode));
+            try (final PreparedUpdateStatement stmt = db.updateTableQuery(sessionQueries.setSessionAuthCodeByPhoneNumber())){
+                stmt.setString(1, SessionPhoneNumber);
+                stmt.setString(2, SessionAuthCode);
+                stmt.executeUpdate();
+            }
             sendAuthCodeToPhoneNumber();
         } catch (Exception ex) {
         }
@@ -65,7 +70,9 @@ public class Session implements java.io.Serializable {
     public void create() {
         try (final Database db = new Database()) {
             SessionAuthCode = new SessionAuthCodeGenerator().Generate();
-            try (final PreparedStatement stmt = db.selectTableQuery(sessionQueries.createSession(SessionPhoneNumber, SessionAuthCode))) {
+            try (final PreparedSelectStatement stmt = db.selectTableQuery(sessionQueries.createSession())) {
+                stmt.setString(1, SessionPhoneNumber);
+                stmt.setString(2, SessionAuthCode);
                 try (final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         sendAuthCodeToPhoneNumber();

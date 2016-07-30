@@ -57,8 +57,7 @@ public class Items_CRUD extends CRUD.SetUpCRUDOperations<Item> {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                Shopping_List.showPhoneNumberDialog(false, getFragment().getActivity());
-                Shopping_List.showAuthCodeDialog(getFragment().getActivity());
+                Shopping_List.showPhoneNumberAndAuthCodeDialogs(false, getFragment().getActivity());
                 getListView().setEnabled(false);
                 new Client.ClientBuilder(ByteCommand.getItems, getFragment().getActivity().getPreferences(Context.MODE_PRIVATE).getString(StaticVariables.IpAddressString, StaticVariables.ActualHardCodedIpAddress), getFragment()).build().execute();
             }

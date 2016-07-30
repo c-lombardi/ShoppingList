@@ -1,4 +1,5 @@
-import java.sql.PreparedStatement;
+import jdk.internal.org.objectweb.asm.Type;
+
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
@@ -94,7 +95,7 @@ public class Item implements CRUD<Item> {
             if (Store != null) {
                 Store = Store.create();
             }
-            try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.addItem(this))) {
+            try (final PreparedSelectStatement stmt = db.selectTableQuery(ItemQueries.addItem(this))) {
                 try (final ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         Id = rs.getInt("ItemId");
@@ -115,7 +116,8 @@ public class Item implements CRUD<Item> {
     public Item read() {
         try (final Database db = new Database()) {
             if (Id != 0) {
-                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemById(Id))) {
+                try (final PreparedSelectStatement stmt = db.selectTableQuery(ItemQueries.getItemById())) {
+                    stmt.setInt(1, Id);
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             Name = rs.getString("ItemName");
@@ -141,7 +143,8 @@ public class Item implements CRUD<Item> {
         final List<Item> returnList = new ArrayList<>();
         try (final Database db = new Database()) {
             if (!fromLibrary) {
-                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromListByShoppingListId(slId))) {
+                try (final PreparedSelectStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromListByShoppingListId())) {
+                    stmt.setInt(1, slId);
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             Store store = new Store();
@@ -152,7 +155,9 @@ public class Item implements CRUD<Item> {
                     }
                 }
             } else {
-                try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromLibrary(sId, slId))) {
+                try (final PreparedSelectStatement stmt = db.selectTableQuery(ItemQueries.getAllItemsFromLibrary())) {
+                    stmt.setObject(1, sId);
+                    stmt.setInt(2, slId);
                     try (final ResultSet rs = stmt.executeQuery()) {
                         while (rs.next()) {
                             returnList.add(new Item(rs.getInt("ItemId"), rs.getString("ItemName"), sId, slId, ItemStatus.Default));
@@ -161,6 +166,7 @@ public class Item implements CRUD<Item> {
                 }
             }
         } catch (Exception ignored) {
+            System.out.println("");
         } finally {
             return returnList;
         }
@@ -169,7 +175,10 @@ public class Item implements CRUD<Item> {
     public List<Item> getLibraryItemsThatContain(final String itemNameSearchString, final int slId) {
         final List<Item> returnList = new ArrayList<>();
         try (final Database db = new Database()) {
-            try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getLibraryItemsWithCharactersAndSessionId(itemNameSearchString, getSessionId(), slId))) {
+            try (final PreparedSelectStatement stmt = db.selectTableQuery(ItemQueries.getLibraryItemsWithCharactersAndSessionId())) {
+                stmt.setString(1, itemNameSearchString);
+                stmt.setObject(2, getSessionId());
+                stmt.setInt(3, slId);
                 try (final ResultSet rs = stmt.executeQuery()) {
                     while (rs.next()) {
                         Item foundItem = new Item();
@@ -196,7 +205,11 @@ public class Item implements CRUD<Item> {
                     if (!justFlipListActive) {
                         db.updateTableQuery(ItemQueries.updateItemById(this));
                     } else {
-                        db.updateTableQuery(ItemQueries.addItemToShoppingList(getId(), getShoppingListId()));
+                        try (final PreparedUpdateStatement stmt = db.updateTableQuery(ItemQueries.addItemToShoppingList())){
+                            stmt.setInt(1, getId());
+                            stmt.setInt(2, getShoppingListId());
+                            stmt.executeUpdate();
+                        }
                     }
             } catch (Exception ex) {
                 create();
@@ -212,9 +225,17 @@ public class Item implements CRUD<Item> {
         try (final Database db = new Database()) {
             if (Id != 0) {
                 if (!deleteFromLibrary) {
-                    db.updateTableQuery(ItemQueries.removeItemFromList(Id, getShoppingListId()));
+                    try (final PreparedUpdateStatement stmt = db.updateTableQuery(ItemQueries.removeItemFromList())) {
+                        stmt.setInt(1, Id);
+                        stmt.setInt(2, getShoppingListId());
+                        stmt.executeUpdate();
+                    }
                 } else {
-                    db.updateTableQuery(ItemQueries.addItemToShoppingList(Id, getShoppingListId()));
+                    try (PreparedUpdateStatement stmt = db.updateTableQuery(ItemQueries.addItemToShoppingList())){
+                        stmt.setInt(1, Id);
+                        stmt.setInt(2, getShoppingListId());
+                        stmt.executeUpdate();
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -226,10 +247,20 @@ public class Item implements CRUD<Item> {
 
     public List<Item> reAdd(final List<Item> items, final int slId) {
         final List<Item> returnList = new ArrayList<>();
+        final ArrayList<Integer> itemIds = new ArrayList<>();
+        for(Item i : items){
+            itemIds.add(i.getId());
+        }
         try (final Database db = new Database()) {
-            db.updateTableQuery(ItemQueries.reAddItemsByIds(items, slId));
-            try (final PreparedStatement stmt = db.selectTableQuery(ItemQueries.getItemsByIds(items, slId))) {
+            try (final PreparedUpdateStatement stmt = db.updateTableQuery(ItemQueries.reAddItemsByIds())) {
+                stmt.setArray(1, db.CreateArray(itemIds.toArray(), Type.getType(Integer.class)));
+                stmt.setInt(2, slId);
+                stmt.executeUpdate();
+            }
+            try (final PreparedSelectStatement stmt = db.selectTableQuery(ItemQueries.getItemsByIds())) {
                 try (final ResultSet rs = stmt.executeQuery()) {
+                    stmt.setArray(1, db.CreateArray(itemIds.toArray(), Type.getType(Integer.class)));
+                    stmt.setInt(2, slId);
                     while (rs.next()) {
                         final Store store = new Store();
                         store.setId(rs.getInt("StoreId"));
@@ -246,15 +277,26 @@ public class Item implements CRUD<Item> {
     }
 
     public void removeItems(final List<Item> items, final int slId) {
+        final ArrayList<Integer> itemIds = new ArrayList<>();
+        for(final Item i : items){
+            itemIds.add(i.getId());
+        }
         try (final Database db = new Database()) {
-            db.updateTableQuery(ItemQueries.removeItemsByIds(items, slId));
+            try (final PreparedUpdateStatement stmt = db.updateTableQuery(ItemQueries.removeItemsByIds())){
+                stmt.setArray(1, db.CreateArray(itemIds.toArray(), Type.getType(Integer.class)));
+                stmt.setInt(2, slId);
+                stmt.executeUpdate();
+            }
         } catch (Exception ignored) {
         }
     }
 
     public void updateItemStatus() {
         try (final Database db = new Database()) {
-            db.updateTableQuery(ItemQueries.changeItemStatusByItemId(this));
+            try (final PreparedUpdateStatement stmt = db.updateTableQuery(ItemQueries.changeItemStatusByItemId())){
+                stmt.setInt(1, getId());
+                stmt.executeUpdate();
+            }
         } catch (Exception ignored) {
         }
     }

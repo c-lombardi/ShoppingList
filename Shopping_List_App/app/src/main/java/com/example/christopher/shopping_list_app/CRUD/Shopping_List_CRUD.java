@@ -47,8 +47,7 @@ public class Shopping_List_CRUD extends CRUD.SetUpCRUDOperations<ShoppingList> {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                Shopping_List.showPhoneNumberDialog(false, getFragment().getActivity());
-                Shopping_List.showAuthCodeDialog(getFragment().getActivity());
+                Shopping_List.showPhoneNumberAndAuthCodeDialogs(false, getFragment().getActivity());
                 getListView().setEnabled(false);
                 new Client.ClientBuilder(ByteCommand.getListOfShoppingLists, getFragment().getActivity().getPreferences(Context.MODE_PRIVATE).getString(StaticVariables.IpAddressString, StaticVariables.ActualHardCodedIpAddress), getFragment()).build().execute();
             }
@@ -161,7 +160,7 @@ public class Shopping_List_CRUD extends CRUD.SetUpCRUDOperations<ShoppingList> {
     @Override
     public void addToOrUpdateArrayList(ShoppingList newShoppingList) {
         try {
-            if(newShoppingList != null) {
+            if(newShoppingList != null && newShoppingList.getShoppingListId() != null) {
                 removeFromArrayList(newShoppingList);
                 getTypeList().add(newShoppingList);
             }
