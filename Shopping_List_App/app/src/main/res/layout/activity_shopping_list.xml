@@ -1,0 +1,16 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools" android:id="@+id/shopping_list_fragment"
+        android:name="com.example.christopher.shopping_list_app.ShoppingListFragment"
+        tools:layout="@layout/fragment_shopping_lists_list" android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools" android:id="@+id/item_list_fragment"
+        android:name="com.example.christopher.shopping_list_app.ItemsListFragment"
+        tools:layout="@layout/fragment_item_list" android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>

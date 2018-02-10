@@ -10,5 +10,10 @@ public enum ByteCommand {
     reAddItems,
     removeItemsFromList,
     getLibraryItemsThatContain,
-    requestNewAuthCode
+    requestNewAuthCode,
+    createShoppingList,
+    renameShoppingList,
+    removeShoppingList,
+    getListOfShoppingLists,
+    updateItemStatus
 }

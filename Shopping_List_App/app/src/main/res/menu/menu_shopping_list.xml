@@ -1,0 +1,24 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".ShoppingListFragment">
+    <item android:id="@+id/action_add"
+        android:title="@string/add_shopping_list"
+        android:icon="@mipmap/sym_action_add"
+        android:orderInCategory="100"
+        android:onClick="AddNewShopping_List"
+        app:showAsAction="ifRoom|withText" />
+    <item android:id="@+id/action_settings"
+        android:title="@string/configure_ip_address"
+        android:icon="@mipmap/ic_ip_address"
+        android:orderInCategory="100"
+        android:onClick="ConfigureIpAddress"
+        app:showAsAction="ifRoom|withText"
+        />
+    <item android:id="@+id/phone_number_settings"
+        android:title="@string/configure_phone_number"
+        android:icon="@mipmap/sym_wrench"
+        android:orderInCategory="100"
+        android:onClick="ConfigurePhoneNumber"
+        app:showAsAction="ifRoom|withText"
+        />
+</menu>
