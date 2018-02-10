@@ -32,16 +32,14 @@ public class Database implements AutoCloseable {
 
     public Database() throws ClassNotFoundException, SQLException {
         Class.forName("org.postgresql.Driver");
-        Connection connection;
         try {
-            connection = DriverManager.getConnection(dbUrl, username, password);
+            db = new ConnectionWrapper(DriverManager.getConnection(dbUrl, username, password));
         } catch (Exception ex) {
-            connection = DriverManager.getConnection(url, username, password);
+            db = new ConnectionWrapper(DriverManager.getConnection(url, username, password));
             createDatabase();
-            connection = DriverManager.getConnection(dbUrl, username, password);
+            db = new ConnectionWrapper(DriverManager.getConnection(dbUrl, username, password));
             createTables();
         }
-        db = new ConnectionWrapper(connection);
     }
 
     private void createDatabase() throws SQLException {
@@ -68,6 +66,7 @@ public class Database implements AutoCloseable {
             try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(sql)){
                 stmt.executeUpdate();
             }catch (final Exception ignored) {
+                System.out.println(String.format("%s didn't create", sql));
             }
         }
     }
@@ -81,6 +80,8 @@ public class Database implements AutoCloseable {
             try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(sql)){
                 stmt.executeUpdate();
             }catch (final Exception ignored) {
+                System.out.println(String.format("%s didn't create", sql));
+                System.out.println(ignored);
             }
         }
     }
@@ -94,6 +95,8 @@ public class Database implements AutoCloseable {
             try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(sql)){
                 stmt.executeUpdate();
             }catch (final Exception ignored) {
+                System.out.println(String.format("%s didn't create", sql));
+                System.out.println(ignored);
             }
         }
     }
@@ -107,6 +110,8 @@ public class Database implements AutoCloseable {
             try (final PreparedUpdateStatement stmt = db.prepareUpdateStatement(sql)){
                 stmt.executeUpdate();
             }catch (final Exception ignored) {
+                System.out.println(String.format("%s didn't create", sql));
+                System.out.println(ignored);
             }
         }
     }

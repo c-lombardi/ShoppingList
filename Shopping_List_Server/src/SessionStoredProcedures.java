@@ -37,6 +37,6 @@ public class SessionStoredProcedures {
                         "FROM Sessions\n" +
                         "WHERE SessionPhoneNumber = phoneNumber AND SessionAuthCode = authCode;\n" +
                         "END\n" +
-                        "$$ LANGUAGE phpgsql", Database.SessionIdAndType)
+                        "$$ LANGUAGE plpgsql", Database.SessionIdAndType)
         };
 }

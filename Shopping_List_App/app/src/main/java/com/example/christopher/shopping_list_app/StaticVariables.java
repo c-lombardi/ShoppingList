@@ -8,5 +8,5 @@ public class StaticVariables {
     public static String SessionPhoneNumberString = "SessionPhoneNumber";
     public static String SessionAuthCodeString = "SessionAuthCode";
     public static String IpAddressString = "IpAddress";
-    public static String ActualHardCodedIpAddress = "192.168.10.100";
+    public static String ActualHardCodedIpAddress = "192.168.10.101";
 }

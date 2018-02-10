@@ -140,7 +140,7 @@ public class ItemStoredProcedures {
                         "END\n" +
                         "$$ LANGUAGE plpgsql\n",
 
-                "CREATE FUNCTION updateItemStatusById(iId INT, itemStatus VARCHAR(8)\n" +
+                "CREATE FUNCTION updateItemStatusById(iId INT, itemStatus VARCHAR(8))\n" +
                         "RETURNS VOID\n" +
                         "AS\n" +
                         "$$\n" +
@@ -186,9 +186,7 @@ public class ItemStoredProcedures {
                         "AND lower(i.ItemName) LIKE '%%itemnameLike%%'\n" +
                         "AND i.Itemid NOT IN (SELECT Itemid FROM ShoppingListItems WHERE ShoppingListId = slId);\n" +
                         "END\n" +
-                        "$$ LANGUAGE plpgsql\n", Database.ItemIdAndType, Database.ItemNameAndType, Database.SessionIdAndType, Database.BestPriceAndType, Database.StoreIdAndType),
-                String.format("CREATE FUNCTION ")
-
+                        "$$ LANGUAGE plpgsql\n", Database.ItemIdAndType, Database.ItemNameAndType, Database.SessionIdAndType, Database.BestPriceAndType, Database.StoreIdAndType)
         };
 
 

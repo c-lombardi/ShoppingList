@@ -26,7 +26,7 @@ public class StoreStoredProcedures {
                     "WHERE StoreId = storeId;\n" +
                     "END\n" +
                     "$$ LANGUAGE plpgsql"),
-            String.format("CREATE FUNCTION getStoreById(storeId INT))\n" +
+            String.format("CREATE FUNCTION getStoreById(sId INT)\n" +
                     "RETURNS TABLE (%s, %s)\n" +
                     "AS\n" +
                     "$$\n" +
@@ -35,10 +35,10 @@ public class StoreStoredProcedures {
                     "RETURN QUERY\n" +
                     "SELECT StoreId, StoreName\n" +
                     "FROM Stores\n" +
-                    "WHERE StoreId = storeId;\n" +
+                    "WHERE StoreId = sId;\n" +
                     "END\n" +
                     "$$ LANGUAGE plpgsql", Database.StoreIdAndType, Database.StoreNameAndType),
-            String.format("CREATE FUNCTION getStoreByName(storeName VARCHAR(50))\n" +
+            String.format("CREATE FUNCTION getStoreByName(sName VARCHAR(50))\n" +
                     "RETURNS TABLE (%s, %s)\n" +
                     "AS\n" +
                     "$$\n" +
@@ -47,19 +47,19 @@ public class StoreStoredProcedures {
                     "RETURN QUERY\n" +
                     "SELECT StoreId, StoreName\n" +
                     "FROM Stores\n" +
-                    "WHERE StoreName = storeName;\n" +
+                    "WHERE StoreName = sName;\n" +
                     "END\n" +
                     "$$ LANGUAGE plpgsql", Database.StoreIdAndType, Database.StoreNameAndType),
             String.format("CREATE FUNCTION getCountFromStores()\n" +
-                    "RETURNS INT\n" +
+                    "RETURNS INTEGER\n" +
                     "AS\n" +
                     "$$\n" +
                     "\n" +
                     "BEGIN\n" +
-                    "RETURN QUERY\n" +
+                    "RETURN (\n" +
                     "SELECT StoreId, StoreName\n" +
                     "FROM Stores\n" +
-                    "WHERE StoreName = storeName;\n" +
+                    "WHERE StoreName = storeName);\n" +
                     "END\n" +
                     "$$ LANGUAGE plpgsql")
     };

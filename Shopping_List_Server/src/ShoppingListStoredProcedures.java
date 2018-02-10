@@ -26,9 +26,10 @@ public class ShoppingListStoredProcedures {
                     "WHERE ShoppingListId = shoppingListId;\n" +
                     "END\n" +
                     "$$ LANGUAGE plpgsql"),
-            String.format("CREATE FUNCTION getShoppingListByShoppingListId(shoppingListId INT))\n" +
+            String.format("CREATE FUNCTION getShoppingListByShoppingListId(shoppingListId INT)\n" +
                     "RETURNS TABLE(%s, %s, %s)\n" +
                     "AS\n" +
+                    "$$\n" +
                     "\n" +
                     "BEGIN\n" +
                     "RETURN QUERY\n" +
@@ -37,9 +38,10 @@ public class ShoppingListStoredProcedures {
                     "WHERE ShoppingListId = shoppingListId;\n" +
                     "END\n" +
                     "$$ LANGUAGE plpgsql", Database.ShoppingListIdAndType, Database.ShoppingListNameAndType, Database.SessionIdAndType),
-            String.format("CREATE FUNCTION getShoppingListsBySessionId(sessionId UUID))\n" +
+            String.format("CREATE FUNCTION getShoppingListsBySessionId(sessionId UUID)\n" +
                     "RETURNS TABLE(%s, %s, %s)\n" +
                     "AS\n" +
+                    "$$\n" +
                     "\n" +
                     "BEGIN\n" +
                     "RETURN QUERY\n" +
